@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 
 from bonjour.config import Config, load_config
 from bonjour.content import marker, render
+from bonjour.greetings import is_greeting, make_reply
 from bonjour.namedays import get_names
 from bonjour.state import State, single_instance
 
@@ -32,6 +33,8 @@ class BulletinClient(discord.Client):
     def __init__(self, config: Config, state: State, session: aiohttp.ClientSession):
         intents = discord.Intents.none()
         intents.guilds = True
+        intents.guild_messages = config.greetings.enabled
+        intents.message_content = config.greetings.enabled
         super().__init__(intents=intents, allowed_mentions=discord.AllowedMentions.none())
         self.config, self.state, self.session = config, state, session
         self.tree = app_commands.CommandTree(self)
@@ -73,6 +76,32 @@ class BulletinClient(discord.Client):
             log.info("Serveur, salon et permissions vérifiés.")
         except (ValueError, discord.HTTPException):
             log.exception("Vérifier les identifiants et les permissions du salon configuré.")
+
+    async def on_message(self, message: discord.Message):
+        config = self.config
+        if (not config.greetings.enabled or message.guild is None
+                or message.guild.id != config.guild_id or message.author.bot
+                or message.webhook_id is not None):
+            return
+        if config.greetings.channel_ids and message.channel.id not in config.greetings.channel_ids:
+            return
+        if not is_greeting(message.content):
+            return
+        today = datetime.now(config.timezone).date()
+        # Réservation persistante avant le premier await pour éviter deux réponses simultanées.
+        if not self.state.claim_greeting(config.guild_id, today, message.author.id):
+            return
+        try:
+            await message.reply(make_reply(message.author.display_name), mention_author=False,
+                                allowed_mentions=discord.AllowedMentions.none())
+        except (discord.Forbidden, discord.NotFound):
+            self.state.release_greeting(config.guild_id, today, message.author.id)
+            log.warning("Réponse bonjour refusée dans le salon %s : vérifier les permissions ou le message source.",
+                        message.channel.id)
+        except Exception:
+            # Réponse réseau incertaine : ne pas risquer de resaluer ce membre aujourd'hui.
+            log.exception("Réponse bonjour incertaine dans le salon %s ; aucun nouvel essai pour ce membre aujourd'hui.",
+                          message.channel.id)
 
     async def close(self):
         if self.worker:
@@ -198,6 +227,8 @@ def main():
             print(render(config, args.date or datetime.now(config.timezone).date(), None))
         else:
             asyncio.run(run(args, config))
+    except discord.PrivilegedIntentsRequired:
+        parser.exit(1, "Erreur : activer Message Content Intent dans le portail Discord, rubrique Bot → Privileged Gateway Intents, ou désactiver greetings.enabled dans config.json.\n")
     except (ValueError, RuntimeError, OSError, discord.LoginFailure, discord.HTTPException) as exc:
         parser.exit(1, f"Erreur : {exc}\n")
     except KeyboardInterrupt:

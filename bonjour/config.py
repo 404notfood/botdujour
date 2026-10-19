@@ -7,6 +7,12 @@ from zoneinfo import ZoneInfo
 
 
 @dataclass(frozen=True)
+class GreetingsConfig:
+    enabled: bool = True
+    channel_ids: tuple[int, ...] = ()
+
+
+@dataclass(frozen=True)
 class Config:
     guild_id: int
     channel_id: int
@@ -17,6 +23,7 @@ class Config:
     latitude: float
     longitude: float
     state_db: Path
+    greetings: GreetingsConfig = GreetingsConfig()
 
 
 def load_config(path: Path, *, preview: bool = False) -> Config:
@@ -48,6 +55,17 @@ def load_config(path: Path, *, preview: bool = False) -> Config:
             else:
                 ids.append(int(value))
         db = Path(raw.get("state_db", "data/bot.sqlite3"))
-        return Config(*ids, zone, start, end, name.strip(), lat, lon, path.resolve().parent / db)
+        greetings = raw.get("greetings", {})
+        if not isinstance(greetings, dict) or not isinstance(greetings.get("enabled", True), bool):
+            raise ValueError("greetings.enabled doit être true ou false.")
+        channel_ids = greetings.get("channel_ids", [])
+        if not isinstance(channel_ids, list):
+            raise ValueError("greetings.channel_ids doit être une liste d'identifiants de salons.")
+        for channel_id in channel_ids:
+            value = str(channel_id)
+            if not value.isascii() or not value.isdigit() or not 0 < int(value) < 2**64:
+                raise ValueError("Identifiant de salon invalide dans greetings.channel_ids.")
+        greeting_config = GreetingsConfig(greetings.get("enabled", True), tuple(int(i) for i in channel_ids))
+        return Config(*ids, zone, start, end, name.strip(), lat, lon, path.resolve().parent / db, greeting_config)
     except (KeyError, TypeError, OSError, ValueError) as exc:
         raise ValueError(f"Configuration {path} invalide : {exc}") from exc

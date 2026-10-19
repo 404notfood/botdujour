@@ -46,6 +46,10 @@ class State:
                 message_id TEXT, PRIMARY KEY (guild, day)
             );
             CREATE TABLE IF NOT EXISTS namedays (day TEXT PRIMARY KEY, names TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS greetings (
+                guild TEXT NOT NULL, day TEXT NOT NULL, user TEXT NOT NULL,
+                PRIMARY KEY (guild, day, user)
+            );
         """)
 
     def close(self):
@@ -87,3 +91,16 @@ class State:
         import json
         with self.db:
             self.db.execute("INSERT OR REPLACE INTO namedays VALUES (?,?)", (day.isoformat(), json.dumps(names)))
+
+    def claim_greeting(self, guild: int, day: date, user: int) -> bool:
+        """Réserver avant l'envoi : une réponse par personne et par jour, tous salons confondus."""
+        with self.db:
+            cursor = self.db.execute("INSERT OR IGNORE INTO greetings (guild,day,user) VALUES (?,?,?)",
+                                     (str(guild), day.isoformat(), str(user)))
+        return cursor.rowcount == 1
+
+    def release_greeting(self, guild: int, day: date, user: int):
+        """À utiliser seulement quand Discord confirme qu'aucun message n'a été envoyé."""
+        with self.db:
+            self.db.execute("DELETE FROM greetings WHERE guild=? AND day=? AND user=?",
+                            (str(guild), day.isoformat(), str(user)))

@@ -4,5 +4,6 @@
   "timezone": "Europe/Paris",
   "send_window": {"start": "08:00", "end": "09:00"},
   "location": {"name": "Paris", "latitude": 48.8566, "longitude": 2.3522},
-  "state_db": "data/bot.sqlite3"
+  "state_db": "data/bot.sqlite3",
+  "greetings": {"enabled": true, "channel_ids": []}
 }

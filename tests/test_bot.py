@@ -11,8 +11,9 @@ from unittest.mock import AsyncMock, patch
 import aiohttp
 import discord
 
-from bonjour.config import load_config
+from bonjour.config import GreetingsConfig, load_config
 from bonjour.content import marker, occasion, render
+from bonjour.greetings import is_greeting, make_reply
 from bonjour.namedays import get_names, parse_names
 from bonjour.state import State, single_instance
 from bot import BulletinClient, find_bulletin
@@ -104,6 +105,38 @@ class CoreTests(unittest.TestCase):
                 with single_instance(self.config.state_db):
                     pass
 
+    def test_greeting_detection(self):
+        for text in ("bonjour", "Bonjour à tous !", "BONJOUR 😊", "  bonjour !", "👋 Bonjour", "**Bonjour**"):
+            self.assertTrue(is_greeting(text), text)
+        for text in ("", "bonne journée", "bonjournee", "Je lui ai dit bonjour", "`bonjour`", "> bonjour", "https://bonjour.fr"):
+            self.assertFalse(is_greeting(text), text)
+
+    def test_greeting_config_is_optional_and_validated(self):
+        raw = json.loads((ROOT / "config.example.json").read_text(encoding="utf-8"))
+        raw.pop("greetings")
+        path = Path(self.tmp.name) / "config.json"
+        path.write_text(json.dumps(raw), encoding="utf-8")
+        self.assertTrue(load_config(path, preview=True).greetings.enabled)
+        for invalid in ({"enabled": "false"}, {"channel_ids": "123"}, {"channel_ids": [True]}):
+            raw["greetings"] = invalid
+            path.write_text(json.dumps(raw), encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_config(path, preview=True)
+        raw["greetings"] = {"enabled": False, "channel_ids": ["456"]}
+        path.write_text(json.dumps(raw), encoding="utf-8")
+        self.assertEqual(load_config(path, preview=True).greetings, GreetingsConfig(False, (456,)))
+
+    def test_daily_greeting_reservation_survives_database_reopen(self):
+        day = date(2026, 10, 19)
+        self.assertTrue(self.state.claim_greeting(123, day, 88))
+        other = State(self.config.state_db)
+        try:
+            self.assertFalse(other.claim_greeting(123, day, 88))
+            self.assertTrue(other.claim_greeting(123, day + timedelta(days=1), 88))
+            self.assertTrue(other.claim_greeting(123, day, 89))
+        finally:
+            other.close()
+
 
 class FakeChannel:
     def __init__(self, messages=()):
@@ -192,6 +225,105 @@ class SchedulerTests(unittest.IsolatedAsyncioTestCase):
         fake_session = SimpleNamespace(get=lambda *a, **kw: (_ for _ in ()).throw(aiohttp.ClientError()))
         with self.assertLogs("bonjour.namedays", level="WARNING"):
             self.assertIsNone(await get_names(fake_session, self.state, self.day))
+
+    def greeting_message(self, user_id=88, display_name="Pseudo du serveur", content="Bonjour à tous !"):
+        return SimpleNamespace(guild=SimpleNamespace(id=123), channel=SimpleNamespace(id=456),
+                               author=SimpleNamespace(id=user_id, bot=False, display_name=display_name),
+                               webhook_id=None, content=content, reply=AsyncMock())
+
+    async def test_greet_once_across_channels_and_nickname_changes(self):
+        first = self.greeting_message()
+        await self.client.on_message(first)
+        again = self.greeting_message(display_name="Nouveau pseudo")
+        again.channel.id = 789
+        await self.client.on_message(again)
+        first.reply.assert_awaited_once()
+        self.assertIn("Pseudo du serveur", first.reply.call_args.args[0])
+        again.reply.assert_not_awaited()
+
+    async def test_distinct_members_with_same_nickname_are_greeted(self):
+        first, second = self.greeting_message(88), self.greeting_message(89)
+        await self.client.on_message(first)
+        await self.client.on_message(second)
+        first.reply.assert_awaited_once()
+        second.reply.assert_awaited_once()
+
+    async def test_greeting_day_changes_at_paris_midnight_not_utc(self):
+        message = self.greeting_message()
+        self.now = datetime(2026, 10, 19, 21, 59, tzinfo=timezone.utc)
+        await self.client.on_message(message)
+        self.now = datetime(2026, 10, 19, 22, 1, tzinfo=timezone.utc)
+        await self.client.on_message(message)
+        self.assertEqual(message.reply.await_count, 2)
+
+    async def test_clock_change_does_not_allow_second_greeting(self):
+        message = self.greeting_message()
+        self.now = datetime(2026, 10, 25, 0, 59, tzinfo=timezone.utc)
+        await self.client.on_message(message)
+        self.now = datetime(2026, 10, 25, 1, 1, tzinfo=timezone.utc)
+        await self.client.on_message(message)
+        message.reply.assert_awaited_once()
+
+    async def test_concurrent_greetings_send_only_once(self):
+        message = self.greeting_message()
+        await asyncio.gather(self.client.on_message(message), self.client.on_message(message))
+        message.reply.assert_awaited_once()
+
+    async def test_greetings_ignore_bots_webhooks_dms_and_other_guilds(self):
+        messages = [self.greeting_message(user_id=90 + i) for i in range(5)]
+        messages[0].author.bot = True
+        messages[1].webhook_id = 12
+        messages[2].guild = None
+        messages[3].guild.id = 999
+        messages[4].content = "J'ai déjà dit bonjour"
+        for message in messages:
+            await self.client.on_message(message)
+            message.reply.assert_not_awaited()
+
+    async def test_greeting_channel_allowlist_and_disable(self):
+        self.client.config = replace(self.config, greetings=GreetingsConfig(True, (789,)))
+        message = self.greeting_message()
+        await self.client.on_message(message)
+        message.reply.assert_not_awaited()
+        self.client.config = replace(self.config, greetings=GreetingsConfig(False))
+        await self.client.on_message(message)
+        message.reply.assert_not_awaited()
+
+    async def test_greeting_mentions_are_disabled(self):
+        message = self.greeting_message(display_name="@everyone **Chef**")
+        await self.client.on_message(message)
+        self.assertIn("@\u200beveryone", message.reply.call_args.args[0])
+        self.assertIn(r"\*\*Chef\*\*", message.reply.call_args.args[0])
+        kwargs = message.reply.call_args.kwargs
+        self.assertFalse(kwargs["mention_author"])
+        self.assertFalse(kwargs["allowed_mentions"].everyone)
+        self.assertFalse(kwargs["allowed_mentions"].users)
+
+    async def test_failed_greeting_is_not_blindly_repeated(self):
+        message = self.greeting_message()
+        message.reply.side_effect = TimeoutError("réponse perdue")
+        with self.assertLogs("botdujour", level="ERROR"):
+            await self.client.on_message(message)
+        await self.client.on_message(message)
+        message.reply.assert_awaited_once()
+
+    async def test_explicitly_refused_greeting_can_retry_after_permission_fix(self):
+        message = self.greeting_message()
+        message.reply.side_effect = discord.Forbidden(SimpleNamespace(status=403, reason="Forbidden"), "Missing permissions")
+        with self.assertLogs("botdujour", level="WARNING"):
+            await self.client.on_message(message)
+        message.reply.side_effect = None
+        await self.client.on_message(message)
+        self.assertEqual(message.reply.await_count, 2)
+
+    async def test_disabled_greetings_do_not_request_privileged_intent(self):
+        config = replace(self.config, greetings=GreetingsConfig(False))
+        client = BulletinClient(config, self.state, self.session)
+        try:
+            self.assertFalse(client.intents.message_content)
+            self.assertFalse(client.intents.guild_messages)
+        finally:
+            await client.close()
 
 
 if __name__ == "__main__":
