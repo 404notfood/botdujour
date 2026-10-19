@@ -12,6 +12,7 @@ Bot Python pour Debian 13 : un bulletin en français dans **un serveur et un sal
 - Quelques journées annuelles et Octobre rose sont inclus dans `calendar.json`. **Ce calendrier de journées particulières n'est pas exhaustif** ; les sources y sont indiquées. Sans événement renseigné, la rubrique est omise. Les textes sont rédigés pour ce bot.
 - Une formule de bonne journée adaptée au jour de la semaine, parmi deux variantes par jour, choisie de façon stable pour une date donnée.
 - Réponse à un message commençant par « bonjour », avec le pseudo du membre sur le serveur et une phrase polie et humoristique. Une seule réponse par membre et par jour, tous salons confondus, selon la date de Paris ; le suivi persiste après redémarrage.
+- Relances du salon du bulletin après deux heures sans message humain, puis toutes les deux heures si le silence continue : humour léger ou noir, petit ASCII ou message binaire à décrypter. Envois entre 09:00 et 22:00, heure de Paris.
 - Aucun service d'IA ni clé d'API payante. Les salutations nécessitent la lecture des nouveaux messages ; leur contenu et les pseudos ne sont pas enregistrés dans la base.
 
 ## 1. Créer l'application Discord
@@ -118,6 +119,34 @@ Une liste vide autorise tous les salons accessibles du serveur configuré. Pour 
 Activer **Message Content Intent** dans le [portail développeur Discord](https://discord.com/developers/applications), rubrique **Bot → Privileged Gateway Intents**, avant de lancer cette version. Sans cette activation, Discord refusera la connexion tant que `greetings.enabled` vaut `true`. Le message de démarrage signale le réglage à corriger. Voir la [documentation des intents](https://discordpy.readthedocs.io/en/stable/intents.html#privileged-intents).
 
 Une réservation est enregistrée avant l'envoi pour éviter les doubles réponses simultanées ou après une coupure. Si Discord refuse explicitement la réponse (message supprimé ou permissions manquantes), la réservation est libérée. Si la réponse réseau est incertaine, le bot s'abstient de resaluer cette personne ce jour-là pour éviter un doublon. Les autres membres et le lendemain ne sont pas bloqués.
+
+## Relances d'un salon inactif
+
+Le salon surveillé est celui du bulletin quotidien (`channel_id`). Par défaut, le bot attend **deux heures sans message humain**, puis publie un message aléatoire. Si personne ne parle, il en publie un nouveau **deux heures après le précédent**, entre **09:00 inclus et 22:00 exclu**, heure de Paris. Les nouveaux messages humains (y compris photos ou pièces jointes sans texte) remettent le délai de deux heures à zéro. Les autres salons, les modifications de messages, les réactions, les bots et les webhooks ne réinitialisent pas ce délai.
+
+Les relances mélangent huit blagues légères, huit phrases d'humour noir, quatre petits ASCII et quatre messages binaires. L'humour noir est macabre et absurde, par exemple « C'est tellement calme ici que même les fantômes ont demandé du télétravail ». Les binaires portent la mention « À décrypter », avec un encodage ASCII de huit bits par caractère. Le même message ne sort pas deux fois de suite, même après un redémarrage. Les banques de textes se trouvent dans `bonjour/inactivity.py`.
+
+Pour modifier ces réglages, ajouter le bloc suivant à la configuration, en conservant les autres paramètres :
+
+```json
+"inactivity": {
+  "enabled": true,
+  "after_minutes": 120,
+  "start": "09:00",
+  "end": "22:00",
+  "tone": "mixed"
+}
+```
+
+`tone` accepte `light`, `dark` ou `mixed` pour la sélection des blagues. Les ASCII et les binaires restent disponibles avec les trois tons. `enabled: false` désactive les relances. La plage horaire reste dans une même journée, entre 04:00 et 23:00 ; le délai accepte de 1 à 10 080 minutes. Une configuration existante sans ce bloc utilise les valeurs ci-dessus.
+
+Au tout premier lancement sur un salon, le délai commence à la mise en route du suivi pour éviter une publication immédiate. Ensuite, les dates d'activité, de dernière relance et le dernier texte choisi sont conservés dans SQLite. Au redémarrage ou à la reconnexion, le bot vérifie les messages arrivés depuis sa dernière observation avant de relancer. Il consulte uniquement leurs métadonnées, sans enregistrer leur contenu ou le pseudo des membres. Le suivi d'inactivité seul ne nécessite pas Message Content Intent ; les réponses aux « bonjour » le demandent toujours.
+
+Le contrôle a lieu toutes les 30 secondes. En dehors de la plage horaire, les relances attendent la prochaine ouverture ; aucune rafale ne rattrape les créneaux de nuit manqués. Le délai se calcule en temps écoulé réel (UTC), la plage d'envoi en heure de Paris, changements d'heure inclus.
+
+Une réservation est enregistrée avant l'envoi pour éviter une relance immédiate en double après un arrêt ou une réponse réseau perdue. En cas de résultat réseau incertain, le bot attend un nouveau délai complet avant de réessayer. Si Discord refuse explicitement l'envoi, la réservation est annulée pour permettre une reprise après correction des permissions. Le serveur et le salon doivent rester accessibles avec **Voir le salon**, **Envoyer des messages** et **Voir les anciens messages**.
+
+Après déploiement des fichiers modifiés sur le VPS, redémarrer depuis le compte administrateur `debian` : `sudo systemctl restart botdujour`. Les réponses quotidiennes aux « bonjour » gardent leur propre limite d'une fois par membre et par jour.
 
 ## Configuration ultérieure
 

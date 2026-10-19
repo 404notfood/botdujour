@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 import secrets
 import sqlite3
@@ -50,7 +50,19 @@ class State:
                 guild TEXT NOT NULL, day TEXT NOT NULL, user TEXT NOT NULL,
                 PRIMARY KEY (guild, day, user)
             );
+            CREATE TABLE IF NOT EXISTS channel_activity (
+                guild TEXT NOT NULL, channel TEXT NOT NULL,
+                last_message_at TEXT NOT NULL, last_human_at TEXT NOT NULL,
+                last_human_id TEXT NOT NULL DEFAULT '0',
+                last_prompt_at TEXT, last_prompt_text TEXT, PRIMARY KEY (guild, channel)
+            );
         """)
+        # Compatibilité avec une base ayant déjà utilisé la première version des relances.
+        columns = {r[1] for r in self.db.execute("PRAGMA table_info(channel_activity)")}
+        for column in ("last_prompt_at", "last_prompt_text"):
+            if column not in columns:
+                with self.db:
+                    self.db.execute(f"ALTER TABLE channel_activity ADD COLUMN {column} TEXT")
 
     def close(self):
         self.db.close()
@@ -104,3 +116,43 @@ class State:
         with self.db:
             self.db.execute("DELETE FROM greetings WHERE guild=? AND day=? AND user=?",
                             (str(guild), day.isoformat(), str(user)))
+
+    def activity(self, guild: int, channel: int, now: datetime):
+        # Au premier lancement, commencer un délai complet plutôt que publier immédiatement.
+        with self.db:
+            timestamp = now.astimezone(timezone.utc).isoformat()
+            self.db.execute("INSERT OR IGNORE INTO channel_activity (guild,channel,last_message_at,last_human_at) VALUES (?,?,?,?)",
+                            (str(guild), str(channel), timestamp, timestamp))
+        return self.db.execute("SELECT * FROM channel_activity WHERE guild=? AND channel=?",
+                               (str(guild), str(channel))).fetchone()
+
+    def observe_activity(self, guild: int, channel: int, message_id: int, at: datetime, *, human: bool):
+        row = self.activity(guild, channel, at)
+        human_id = str(max(int(row["last_human_id"]), message_id)) if human else row["last_human_id"]
+        human_at = max(datetime.fromisoformat(row["last_human_at"]), at.astimezone(timezone.utc)).isoformat() if human else row["last_human_at"]
+        latest = max(datetime.fromisoformat(row["last_message_at"]), at.astimezone(timezone.utc)).isoformat()
+        with self.db:
+            self.db.execute("UPDATE channel_activity SET last_message_at=?,last_human_at=?,last_human_id=? WHERE guild=? AND channel=?",
+                            (latest, human_at, human_id, str(guild), str(channel)))
+
+    def claim_inactivity(self, guild: int, channel: int, row, now: datetime, text: str) -> bool:
+        with self.db:
+            cursor = self.db.execute("""UPDATE channel_activity SET last_prompt_at=?,last_prompt_text=?
+                WHERE guild=? AND channel=? AND last_human_id=? AND last_message_at=?
+                AND last_prompt_at IS ?""",
+                (now.astimezone(timezone.utc).isoformat(), text, str(guild), str(channel),
+                 row["last_human_id"], row["last_message_at"], row["last_prompt_at"]))
+        return cursor.rowcount == 1
+
+    def release_inactivity(self, guild: int, channel: int, reserved_at: datetime, previous):
+        with self.db:
+            self.db.execute("""UPDATE channel_activity SET last_prompt_at=?,last_prompt_text=?
+                WHERE guild=? AND channel=? AND last_prompt_at=?""",
+                (previous["last_prompt_at"], previous["last_prompt_text"], str(guild), str(channel),
+                 reserved_at.astimezone(timezone.utc).isoformat()))
+
+    def complete_inactivity(self, guild: int, channel: int, reserved_at: datetime, sent_at: datetime):
+        with self.db:
+            self.db.execute("UPDATE channel_activity SET last_prompt_at=? WHERE guild=? AND channel=? AND last_prompt_at=?",
+                            (sent_at.astimezone(timezone.utc).isoformat(), str(guild), str(channel),
+                             reserved_at.astimezone(timezone.utc).isoformat()))

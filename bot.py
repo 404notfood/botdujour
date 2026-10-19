@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from bonjour.config import Config, load_config
 from bonjour.content import marker, render
 from bonjour.greetings import is_greeting, make_reply
+from bonjour.inactivity import choose_prompt, is_due
 from bonjour.namedays import get_names
 from bonjour.state import State, single_instance
 
@@ -33,13 +34,14 @@ class BulletinClient(discord.Client):
     def __init__(self, config: Config, state: State, session: aiohttp.ClientSession):
         intents = discord.Intents.none()
         intents.guilds = True
-        intents.guild_messages = config.greetings.enabled
+        intents.guild_messages = config.greetings.enabled or config.inactivity.enabled
         intents.message_content = config.greetings.enabled
         super().__init__(intents=intents, allowed_mentions=discord.AllowedMentions.none())
         self.config, self.state, self.session = config, state, session
         self.tree = app_commands.CommandTree(self)
         self.worker = None
         self.logged_day = None
+        self.activity_needs_sync = True
         guild = discord.Object(id=config.guild_id)
 
         @self.tree.command(name="bonjour-apercu", description="Prévisualiser le bulletin, visible uniquement par vous.", guild=guild)
@@ -70,6 +72,7 @@ class BulletinClient(discord.Client):
         self.worker = asyncio.create_task(self.scheduler(), name="bulletin-quotidien")
 
     async def on_ready(self):
+        self.activity_needs_sync = True
         log.info("Connecté comme %s ; serveur %s, salon %s.", self.user, self.config.guild_id, self.config.channel_id)
         try:
             await self.destination(self.config.channel_id)
@@ -79,6 +82,10 @@ class BulletinClient(discord.Client):
 
     async def on_message(self, message: discord.Message):
         config = self.config
+        if (config.inactivity.enabled and message.guild is not None
+                and message.guild.id == config.guild_id and message.channel.id == config.channel_id):
+            self.state.observe_activity(config.guild_id, config.channel_id, message.id, message.created_at,
+                                        human=not message.author.bot and message.webhook_id is None)
         if (not config.greetings.enabled or message.guild is None
                 or message.guild.id != config.guild_id or message.author.bot
                 or message.webhook_id is not None):
@@ -181,7 +188,44 @@ class BulletinClient(discord.Client):
                     await self.tick(datetime.now(self.config.timezone))
                 except Exception:
                     log.exception("Échec du passage du planificateur ; nouvel essai dans 30 secondes.")
+                try:
+                    await self.inactivity_tick(datetime.now(self.config.timezone))
+                except Exception:
+                    log.exception("Échec de la vérification d'inactivité ; nouvel essai dans 30 secondes.")
             await asyncio.sleep(30)
+
+    async def inactivity_tick(self, now: datetime):
+        config = self.config
+        if not config.inactivity.enabled:
+            return
+        row = self.state.activity(config.guild_id, config.channel_id, now)
+        if not self.activity_needs_sync and not is_due(config, row, now):
+            return
+        channel = await self.destination(config.channel_id)
+        # Retrouver aussi l'activité pendant une déconnexion. Ne lire aucun contenu.
+        async for message in channel.history(limit=None, after=datetime.fromisoformat(row["last_message_at"]), oldest_first=True):
+            self.state.observe_activity(config.guild_id, config.channel_id, message.id, message.created_at,
+                                        human=not message.author.bot and message.webhook_id is None)
+        self.activity_needs_sync = False
+        now = datetime.now(config.timezone)
+        row = self.state.activity(config.guild_id, config.channel_id, now)
+        if not is_due(config, row, now):
+            return
+        text = choose_prompt(config.inactivity.tone, row["last_prompt_text"])
+        if not self.state.claim_inactivity(config.guild_id, config.channel_id, row, now, text):
+            return
+        try:
+            sent = await channel.send(text, allowed_mentions=discord.AllowedMentions.none())
+        except (discord.Forbidden, discord.NotFound):
+            self.state.release_inactivity(config.guild_id, config.channel_id, now, row)
+            log.warning("Relance refusée dans le salon %s : vérifier les permissions.", config.channel_id)
+        except Exception:
+            log.exception("Réponse réseau incertaine pour la relance du salon %s ; attendre le prochain délai complet avant un nouvel essai.", config.channel_id)
+        else:
+            # Mettre à jour avant même que notre événement on_message ne revienne.
+            self.state.observe_activity(config.guild_id, config.channel_id, sent.id, sent.created_at, human=False)
+            self.state.complete_inactivity(config.guild_id, config.channel_id, now, sent.created_at)
+            log.info("Relance d'inactivité publiée dans le salon %s.", config.channel_id)
 
 
 async def run(args, config: Config):

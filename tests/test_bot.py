@@ -229,6 +229,7 @@ class SchedulerTests(unittest.IsolatedAsyncioTestCase):
     def greeting_message(self, user_id=88, display_name="Pseudo du serveur", content="Bonjour à tous !"):
         return SimpleNamespace(guild=SimpleNamespace(id=123), channel=SimpleNamespace(id=456),
                                author=SimpleNamespace(id=user_id, bot=False, display_name=display_name),
+                               id=1000 + user_id, created_at=self.now,
                                webhook_id=None, content=content, reply=AsyncMock())
 
     async def test_greet_once_across_channels_and_nickname_changes(self):
@@ -321,7 +322,7 @@ class SchedulerTests(unittest.IsolatedAsyncioTestCase):
         client = BulletinClient(config, self.state, self.session)
         try:
             self.assertFalse(client.intents.message_content)
-            self.assertFalse(client.intents.guild_messages)
+            self.assertTrue(client.intents.guild_messages)  # L'inactivité reçoit aussi les messages.
         finally:
             await client.close()
 

@@ -13,6 +13,15 @@ class GreetingsConfig:
 
 
 @dataclass(frozen=True)
+class InactivityConfig:
+    enabled: bool = True
+    after_minutes: int = 120
+    start: time = time(9)
+    end: time = time(22)
+    tone: str = "mixed"
+
+
+@dataclass(frozen=True)
 class Config:
     guild_id: int
     channel_id: int
@@ -24,6 +33,7 @@ class Config:
     longitude: float
     state_db: Path
     greetings: GreetingsConfig = GreetingsConfig()
+    inactivity: InactivityConfig = InactivityConfig()
 
 
 def load_config(path: Path, *, preview: bool = False) -> Config:
@@ -66,6 +76,20 @@ def load_config(path: Path, *, preview: bool = False) -> Config:
             if not value.isascii() or not value.isdigit() or not 0 < int(value) < 2**64:
                 raise ValueError("Identifiant de salon invalide dans greetings.channel_ids.")
         greeting_config = GreetingsConfig(greetings.get("enabled", True), tuple(int(i) for i in channel_ids))
-        return Config(*ids, zone, start, end, name.strip(), lat, lon, path.resolve().parent / db, greeting_config)
+        idle = raw.get("inactivity", {})
+        if not isinstance(idle, dict) or not isinstance(idle.get("enabled", True), bool):
+            raise ValueError("inactivity.enabled doit être true ou false.")
+        minutes = idle.get("after_minutes", 120)
+        if type(minutes) is not int or not 1 <= minutes <= 10080:
+            raise ValueError("inactivity.after_minutes doit être un entier entre 1 et 10080.")
+        idle_start = time.fromisoformat(idle.get("start", "09:00"))
+        idle_end = time.fromisoformat(idle.get("end", "22:00"))
+        if any(t.tzinfo or t.second or t.microsecond for t in (idle_start, idle_end)) or not time(4) <= idle_start < idle_end <= time(23):
+            raise ValueError("La fenêtre inactivity doit être au format HH:MM, entre 04:00 et 23:00, dans la même journée.")
+        tone = idle.get("tone", "mixed")
+        if tone not in ("light", "dark", "mixed"):
+            raise ValueError("inactivity.tone doit être light, dark ou mixed.")
+        idle_config = InactivityConfig(idle.get("enabled", True), minutes, idle_start, idle_end, tone)
+        return Config(*ids, zone, start, end, name.strip(), lat, lon, path.resolve().parent / db, greeting_config, idle_config)
     except (KeyError, TypeError, OSError, ValueError) as exc:
         raise ValueError(f"Configuration {path} invalide : {exc}") from exc
