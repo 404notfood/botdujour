@@ -1,0 +1,1 @@
+"""Bulletin matinal Discord."""

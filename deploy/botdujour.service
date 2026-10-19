@@ -1,0 +1,27 @@
+[Unit]
+Description=Bot Discord du bonjour quotidien
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=botdujour
+Group=botdujour
+WorkingDirectory=/opt/botdujour
+EnvironmentFile=/opt/botdujour/.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/botdujour/.venv/bin/python /opt/botdujour/bot.py --config /opt/botdujour/config.json
+Restart=on-failure
+RestartSec=15
+StateDirectory=botdujour
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/botdujour
+
+[Install]
+WantedBy=multi-user.target

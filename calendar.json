@@ -1,0 +1,17 @@
+{
+  "dates": {},
+  "annual": {
+    "01-01": {"title": "BONNE ANNÉE !", "text": "🎉 Une nouvelle année commence : souhaitons-nous de belles découvertes et beaucoup de moments heureux !", "source": "https://www.service-public.fr/particuliers/vosdroits/F2405"},
+    "03-08": {"title": "JOURNÉE INTERNATIONALE DES FEMMES", "text": "💜 Aujourd'hui, saluons les femmes et les initiatives qui font avancer l'égalité au quotidien.", "source": "https://www.un.org/fr/observances/womens-day"},
+    "03-22": {"title": "JOURNÉE MONDIALE DE L'EAU", "text": "💧 L'eau est précieuse : chaque geste pour la préserver compte.", "source": "https://www.un.org/fr/observances/water-day"},
+    "04-22": {"title": "JOURNÉE INTERNATIONALE DE LA TERRE NOURRICIÈRE", "text": "🌱 Prenons un moment pour apprécier la nature et réfléchir à nos gestes pour la protéger.", "source": "https://www.un.org/fr/observances/earth-day"},
+    "05-20": {"title": "JOURNÉE MONDIALE DES ABEILLES", "text": "🐝 Petites mais essentielles : pensons aux abeilles et aux autres pollinisateurs !", "source": "https://www.un.org/fr/observances/bee-day"},
+    "06-05": {"title": "JOURNÉE MONDIALE DE L'ENVIRONNEMENT", "text": "🌍 Aujourd'hui, prenons soin de notre environnement avec un petit geste à notre portée.", "source": "https://www.un.org/fr/observances/environment-day"},
+    "06-08": {"title": "JOURNÉE MONDIALE DE L'OCÉAN", "text": "🌊 Célébrons les océans et la vie qu'ils abritent. Leur protection nous concerne tous !", "source": "https://www.un.org/fr/observances/oceans-day"},
+    "09-21": {"title": "JOURNÉE INTERNATIONALE DE LA PAIX", "text": "🕊️ Un peu d'écoute et de bienveillance peuvent déjà rendre notre journée plus paisible.", "source": "https://www.un.org/fr/observances/international-day-peace"},
+    "12-10": {"title": "JOURNÉE DES DROITS DE L'HOMME", "text": "🤝 La dignité et le respect de chacun se défendent aussi dans nos gestes du quotidien.", "source": "https://www.un.org/fr/observances/human-rights-day"}
+  },
+  "months": {
+    "10": {"title": "OCTOBRE ROSE", "text": "🎗️ En octobre, une pensée solidaire pour les personnes touchées par le cancer du sein et pour leurs proches. 💗", "source": "https://www.ligue-cancer.net/"}
+  }
+}

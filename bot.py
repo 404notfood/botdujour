@@ -1,0 +1,208 @@
+"""Lancement : python bot.py ; aperçu local : python bot.py --preview --offline."""
+import argparse
+import asyncio
+from datetime import date, datetime, time
+import logging
+import os
+from pathlib import Path
+
+import aiohttp
+import discord
+from discord import app_commands
+from dotenv import load_dotenv
+
+from bonjour.config import Config, load_config
+from bonjour.content import marker, render
+from bonjour.namedays import get_names
+from bonjour.state import State, single_instance
+
+log = logging.getLogger("botdujour")
+
+
+async def find_bulletin(channel, author_id: int, day: date, zone):
+    midnight = datetime.combine(day, time.min, zone)
+    async for message in channel.history(limit=None, after=midnight, oldest_first=False):
+        if (message.author.id == author_id and message.created_at.astimezone(zone).date() == day
+                and any(line.startswith(f"-# {marker(day)}") for line in message.content.splitlines())):
+            return message
+    return None
+
+
+class BulletinClient(discord.Client):
+    def __init__(self, config: Config, state: State, session: aiohttp.ClientSession):
+        intents = discord.Intents.none()
+        intents.guilds = True
+        super().__init__(intents=intents, allowed_mentions=discord.AllowedMentions.none())
+        self.config, self.state, self.session = config, state, session
+        self.tree = app_commands.CommandTree(self)
+        self.worker = None
+        self.logged_day = None
+        guild = discord.Object(id=config.guild_id)
+
+        @self.tree.command(name="bonjour-apercu", description="Prévisualiser le bulletin, visible uniquement par vous.", guild=guild)
+        @app_commands.guild_only()
+        @app_commands.default_permissions(manage_guild=True)
+        @app_commands.checks.has_permissions(manage_guild=True)
+        async def preview(interaction: discord.Interaction):
+            await interaction.response.defer(ephemeral=True)
+            today = datetime.now(config.timezone).date()
+            names = await get_names(session, state, today)
+            await interaction.followup.send(render(config, today, names), ephemeral=True,
+                                            allowed_mentions=discord.AllowedMentions.none())
+
+        @self.tree.error
+        async def command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+            if isinstance(error, app_commands.MissingPermissions):
+                message = "La permission Gérer le serveur est nécessaire pour cet aperçu."
+            else:
+                log.error("Échec de l'aperçu : %s", type(error).__name__)
+                message = "L'aperçu a échoué. Consulter les journaux du bot."
+            if interaction.response.is_done():
+                await interaction.followup.send(message, ephemeral=True)
+            else:
+                await interaction.response.send_message(message, ephemeral=True)
+
+    async def setup_hook(self):
+        await self.tree.sync(guild=discord.Object(id=self.config.guild_id))
+        self.worker = asyncio.create_task(self.scheduler(), name="bulletin-quotidien")
+
+    async def on_ready(self):
+        log.info("Connecté comme %s ; serveur %s, salon %s.", self.user, self.config.guild_id, self.config.channel_id)
+        try:
+            await self.destination(self.config.channel_id)
+            log.info("Serveur, salon et permissions vérifiés.")
+        except (ValueError, discord.HTTPException):
+            log.exception("Vérifier les identifiants et les permissions du salon configuré.")
+
+    async def close(self):
+        if self.worker:
+            self.worker.cancel()
+            try:
+                await self.worker
+            except asyncio.CancelledError:
+                pass
+        await super().close()
+
+    async def destination(self, channel_id: int):
+        channel = self.get_channel(channel_id) or await self.fetch_channel(channel_id)
+        if not isinstance(channel, discord.TextChannel) or channel.guild.id != self.config.guild_id:
+            raise ValueError("Le salon doit être un salon textuel du serveur configuré.")
+        member = channel.guild.me
+        if member is None:
+            raise ValueError("Le bot n'est pas membre du serveur configuré.")
+        permissions = channel.permissions_for(member)
+        if not (permissions.view_channel and permissions.send_messages and permissions.read_message_history):
+            raise ValueError("Permissions requises dans le salon : Voir le salon, Envoyer des messages et Voir les anciens messages.")
+        return channel
+
+    async def tick(self, now: datetime):
+        config = self.config
+        now = now.astimezone(config.timezone)
+        day = now.date()
+        plan = self.state.plan(config, day)
+        if day != self.logged_day:
+            log.info("Bulletin du %s prévu à %s (heure de Paris), état : %s.",
+                     day, datetime.fromisoformat(plan["target"]).strftime("%H:%M:%S"), plan["status"])
+            self.logged_day = day
+        if plan["status"] in ("sent", "skipped", "uncertain"):
+            return
+        if plan["status"] == "pending":
+            if now >= datetime.combine(day, config.end, config.timezone):
+                self.state.set_status(config.guild_id, day, "skipped")
+                log.warning("Fenêtre du matin dépassée : bulletin du %s ignoré.", day)
+                return
+            if now < datetime.fromisoformat(plan["target"]):
+                return
+        channel = await self.destination(int(plan["channel"]))
+        # Réconcilier l'historique avant tout envoi, notamment après un arrêt brutal.
+        existing = await find_bulletin(channel, self.user.id, day, config.timezone)
+        if existing:
+            self.state.set_status(config.guild_id, day, "sent", existing.id)
+            log.info("Bulletin du %s déjà présent, aucun nouvel envoi.", day)
+            return
+        if plan["status"] == "sending":
+            self.state.set_status(config.guild_id, day, "uncertain")
+            log.error("Envoi du %s interrompu sans accusé de réception. Aucun renvoi automatique ; vérifier le salon.", day)
+            return
+        names = await get_names(self.session, self.state, day)
+        message = render(config, day, names)
+        # Le réseau peut prendre du temps : ne pas envoyer après 09:00.
+        if datetime.now(config.timezone) >= datetime.combine(day, config.end, config.timezone):
+            self.state.set_status(config.guild_id, day, "skipped")
+            return
+        self.state.set_status(config.guild_id, day, "sending")
+        try:
+            sent = await channel.send(message, allowed_mentions=discord.AllowedMentions.none())
+        except (discord.Forbidden, discord.NotFound):
+            # Refus explicite : Discord n'a pas créé de message, une reprise reste sûre.
+            self.state.set_status(config.guild_id, day, "pending")
+            raise
+        except Exception:
+            # Conserver 'sending'. Au prochain passage, rechercher le message.
+            log.exception("Réponse d'envoi incertaine pour le %s, contrôle de l'historique au prochain passage.", day)
+            return
+        self.state.set_status(config.guild_id, day, "sent", sent.id)
+        log.info("Bulletin publié : %s", sent.id)
+
+    async def scheduler(self):
+        await self.wait_until_ready()
+        while not self.is_closed():
+            if self.is_ready():
+                try:
+                    await self.tick(datetime.now(self.config.timezone))
+                except Exception:
+                    log.exception("Échec du passage du planificateur ; nouvel essai dans 30 secondes.")
+            await asyncio.sleep(30)
+
+
+async def run(args, config: Config):
+    if args.preview and args.offline:
+        print(render(config, args.date or datetime.now(config.timezone).date(), None))
+        return
+    token = os.environ.get("DISCORD_TOKEN", "").strip()
+    if not args.preview and (not token or token == "votre_token_discord"):
+        raise ValueError("Renseigner DISCORD_TOKEN dans .env avant de démarrer le bot.")
+    with single_instance(config.state_db):
+        state = State(config.state_db)
+        try:
+            async with aiohttp.ClientSession(headers={"User-Agent": "BotDuJour/1.0"}) as session:
+                if args.preview:
+                    day = args.date or datetime.now(config.timezone).date()
+                    print(render(config, day, await get_names(session, state, day)))
+                else:
+                    async with BulletinClient(config, state, session) as client:
+                        await client.start(token)
+        finally:
+            state.close()
+
+
+def main():
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s : %(message)s")
+    parser = argparse.ArgumentParser(description="Bot Discord du bonjour quotidien (heure de Paris).")
+    parser.add_argument("--config", type=Path, default=Path(__file__).resolve().parent / "config.json")
+    parser.add_argument("--check", action="store_true", help="Vérifier les fichiers sans se connecter à Discord.")
+    parser.add_argument("--preview", action="store_true", help="Afficher le bulletin sans le publier.")
+    parser.add_argument("--offline", action="store_true", help="Aperçu sans appel à Nominis (avec --preview).")
+    parser.add_argument("--date", type=date.fromisoformat, help="Date de l'aperçu : AAAA-MM-JJ.")
+    args = parser.parse_args()
+    if (args.offline or args.date) and not args.preview:
+        parser.error("--offline et --date nécessitent --preview.")
+    load_dotenv(Path(__file__).resolve().parent / ".env", override=False)
+    try:
+        config = load_config(args.config, preview=args.preview)
+        if args.check:
+            # Vérifie aussi la structure du calendrier et la taille du bulletin du jour.
+            render(config, datetime.now(config.timezone).date(), None)
+            print("Configuration valide. Les identifiants et permissions Discord seront vérifiés à la connexion.")
+        elif args.preview and args.offline:
+            print(render(config, args.date or datetime.now(config.timezone).date(), None))
+        else:
+            asyncio.run(run(args, config))
+    except (ValueError, RuntimeError, OSError, discord.LoginFailure, discord.HTTPException) as exc:
+        parser.exit(1, f"Erreur : {exc}\n")
+    except KeyboardInterrupt:
+        pass
+
+
+if __name__ == "__main__":
+    main()
