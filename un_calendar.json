@@ -1,0 +1,1469 @@
+{
+  "source": "https://www.un.org/fr/observances/list-days-weeks",
+  "checked_on": "2026-10-21",
+  "events": [
+    {
+      "name": "Journée mondiale du braille",
+      "month": 1,
+      "day": 4,
+      "source": "https://www.un.org/fr/observances/braille-day"
+    },
+    {
+      "name": "Journée internationale de l'éducation",
+      "month": 1,
+      "day": 24,
+      "source": "https://www.un.org/fr/observances/education-day"
+    },
+    {
+      "name": "Journée internationale des énergies propres",
+      "month": 1,
+      "day": 26,
+      "source": "https://www.un.org/fr/observances/clean-energy-day"
+    },
+    {
+      "name": "Journée internationale dédiée à la mémoire des victimes de l'Holocauste",
+      "month": 1,
+      "day": 27,
+      "source": "https://www.un.org/fr/holocaustremembrance/observance"
+    },
+    {
+      "name": "Journée internationale de la coexistence pacifique",
+      "month": 1,
+      "day": 28,
+      "source": "https://www.un.org/fr/observances/peaceful-coexistence-day"
+    },
+    {
+      "name": "Semaine mondiale de l’harmonie interconfessionnelle (première semaine de février)",
+      "month": 2,
+      "day": 1,
+      "source": "https://www.un.org/fr/observances/interfaith-harmony-week",
+      "kind": "week"
+    },
+    {
+      "name": "Journée mondiale des zones humides",
+      "month": 2,
+      "day": 2,
+      "source": "https://www.un.org/fr/observances/world-wetlands-day"
+    },
+    {
+      "name": "Journée internationale de la fraternité humaine",
+      "month": 2,
+      "day": 4,
+      "source": "https://www.un.org/fr/observances/human-fraternity"
+    },
+    {
+      "name": "Journée internationale de tolérance zéro à l'égard des mutilations génitales féminines",
+      "month": 2,
+      "day": 6,
+      "source": "https://www.un.org/fr/observances/female-genital-mutilation-day"
+    },
+    {
+      "name": "Journée internationale du léopard d’Arabie",
+      "month": 2,
+      "day": 10,
+      "source": "https://www.un.org/fr/observances/arabian-leopard-day"
+    },
+    {
+      "name": "Journée internationale des légumineuses",
+      "month": 2,
+      "day": 10,
+      "source": "https://www.un.org/fr/observances/world-pulses-day"
+    },
+    {
+      "name": "Journée internationale des femmes et des filles de science",
+      "month": 2,
+      "day": 11,
+      "source": "https://www.un.org/fr/observances/women-and-girls-in-science-day"
+    },
+    {
+      "name": "Journée internationale pour la prévention de l’extrémisme violent pouvant conduire au terrorisme",
+      "month": 2,
+      "day": 12,
+      "source": "https://www.un.org/fr/observances/prevention-extremism-when-conducive-terrorism-day"
+    },
+    {
+      "name": "Journée mondiale de la radio",
+      "month": 2,
+      "day": 13,
+      "source": "https://www.un.org/fr/observances/radio-day"
+    },
+    {
+      "name": "Journée mondiale de la justice sociale",
+      "month": 2,
+      "day": 20,
+      "source": "https://www.un.org/fr/observances/social-justice-day"
+    },
+    {
+      "name": "Journée internationale de la langue maternelle",
+      "month": 2,
+      "day": 21,
+      "source": "https://www.un.org/fr/observances/mother-language-day"
+    },
+    {
+      "name": "Journée mondiale des herbiers marins",
+      "month": 3,
+      "day": 1,
+      "source": "https://www.un.org/fr/observances/seagrass-day"
+    },
+    {
+      "name": "Journée « Zéro discrimination »",
+      "month": 3,
+      "day": 1,
+      "source": "https://www.unaids.org/fr/zero-discrimination-day"
+    },
+    {
+      "name": "Journée mondiale de la vie sauvage",
+      "month": 3,
+      "day": 3,
+      "source": "https://www.un.org/fr/observances/world-wildlife-day"
+    },
+    {
+      "name": "Journée internationale de sensibilisation au désarmement et à la non-prolifération",
+      "month": 3,
+      "day": 5,
+      "source": "https://www.un.org/fr/observances/disarmament-non-proliferation-awareness-day"
+    },
+    {
+      "name": "Journée internationale des femmes",
+      "month": 3,
+      "day": 8,
+      "source": "https://www.un.org/fr/observances/womens-day"
+    },
+    {
+      "name": "Journée internationale des femmes juges",
+      "month": 3,
+      "day": 10,
+      "source": "https://www.un.org/fr/observances/women-judges-day"
+    },
+    {
+      "name": "Journée internationale de lutte contre l’islamophobie",
+      "month": 3,
+      "day": 15,
+      "source": "https://www.un.org/fr/observances/anti-islamophobia-day"
+    },
+    {
+      "name": "Journée internationale du bonheur",
+      "month": 3,
+      "day": 20,
+      "source": "https://www.un.org/fr/observances/happiness-day"
+    },
+    {
+      "name": "Journée de la langue française",
+      "month": 3,
+      "day": 20,
+      "source": "https://www.un.org/fr/observances/french-language-day/"
+    },
+    {
+      "name": "Journée internationale des forêts",
+      "month": 3,
+      "day": 21,
+      "source": "https://www.un.org/fr/observances/forests-and-trees-day"
+    },
+    {
+      "name": "Journée mondiale des glaciers",
+      "month": 3,
+      "day": 21,
+      "source": "https://www.un.org/fr/observances/world-glaciers-day"
+    },
+    {
+      "name": "Journée internationale du Novruz",
+      "month": 3,
+      "day": 21,
+      "source": "https://www.un.org/fr/observances/international-nowruz-day"
+    },
+    {
+      "name": "Journée internationale pour l'élimination de la discrimination raciale",
+      "month": 3,
+      "day": 21,
+      "source": "https://www.un.org/fr/observances/end-racism-day"
+    },
+    {
+      "name": "Journée mondiale de la poésie",
+      "month": 3,
+      "day": 21,
+      "source": "https://www.unesco.org/fr/days/poetry"
+    },
+    {
+      "name": "Journée mondiale de la trisomie 21",
+      "month": 3,
+      "day": 21,
+      "source": "https://www.un.org/fr/observances/down-syndrome-day"
+    },
+    {
+      "name": "Journée mondiale de l'eau",
+      "month": 3,
+      "day": 22,
+      "source": "https://www.un.org/fr/observances/water-day"
+    },
+    {
+      "name": "Journée météorologique mondiale",
+      "month": 3,
+      "day": 23,
+      "source": "https://wmo.int/fr/journee-meteorologique-mondiale"
+    },
+    {
+      "name": "Journée internationale pour le droit à la vérité en ce qui concerne les violations flagrantes des droits de l’homme et pour la dignité des victimes",
+      "month": 3,
+      "day": 24,
+      "source": "https://www.un.org/fr/observances/right-to-truth-day"
+    },
+    {
+      "name": "Journée mondiale de la lutte contre la tuberculose",
+      "month": 3,
+      "day": 24,
+      "source": "https://www.who.int/fr/campaigns/world-tb-day"
+    },
+    {
+      "name": "Journée de solidarité avec les fonctionnaires détenus ou portés disparus",
+      "month": 3,
+      "day": 25,
+      "source": "https://www.un.org/fr/observances/detained-staff-day"
+    },
+    {
+      "name": "Journée internationale de commémoration des victimes de l’esclavage et de la traite transatlantique des esclaves",
+      "month": 3,
+      "day": 25,
+      "source": "https://www.un.org/fr/observances/transatlantic-slave-trade"
+    },
+    {
+      "name": "Journée internationale du zéro déchet",
+      "month": 3,
+      "day": 30,
+      "source": "https://www.un.org/fr/observances/zero-waste-day"
+    },
+    {
+      "name": "Journée mondiale de sensibilisation à l'autisme",
+      "month": 4,
+      "day": 2,
+      "source": "https://www.un.org/fr/observances/autism-day"
+    },
+    {
+      "name": "Journée internationale pour la sensibilisation aux mines et l'assistance à la lutte antimines",
+      "month": 4,
+      "day": 4,
+      "source": "https://www.un.org/fr/observances/mine-awareness-day"
+    },
+    {
+      "name": "Journée internationale de la conscience",
+      "month": 4,
+      "day": 5,
+      "source": "https://www.un.org/fr/observances/conscience-day"
+    },
+    {
+      "name": "Journée internationale du sport au service du développement et de la paix",
+      "month": 4,
+      "day": 6,
+      "source": "https://www.un.org/fr/observances/sport-day"
+    },
+    {
+      "name": "Journée internationale de réflexion sur le génocide des Tutsis au Rwanda en 1994",
+      "month": 4,
+      "day": 7,
+      "source": "https://www.un.org/fr/preventgenocide/rwanda/"
+    },
+    {
+      "name": "Journée mondiale de la santé",
+      "month": 4,
+      "day": 7,
+      "source": "https://www.who.int/fr/campaigns/world-health-day"
+    },
+    {
+      "name": "Journée internationale du vol spatial habité",
+      "month": 4,
+      "day": 12,
+      "source": "https://www.un.org/fr/observances/human-spaceflight-day"
+    },
+    {
+      "name": "Journée mondiale de la maladie de Chagas",
+      "month": 4,
+      "day": 14,
+      "source": "https://www.who.int/topics/chagas_disease/fr/"
+    },
+    {
+      "name": "Journée internationale du mieux-être",
+      "month": 4,
+      "day": 15,
+      "source": "https://www.un.org/fr/observances/wellness-day"
+    },
+    {
+      "name": "Journée de la langue chinoise",
+      "month": 4,
+      "day": 20,
+      "source": "http://www.un.org/zh/events/chineselanguageday/"
+    },
+    {
+      "name": "Journée mondiale de la créativité et de l’innovation",
+      "month": 4,
+      "day": 21,
+      "source": "https://www.un.org/fr/observances/creativity-and-innovation-day"
+    },
+    {
+      "name": "Journée internationale de la Terre nourricière",
+      "month": 4,
+      "day": 22,
+      "source": "https://www.un.org/fr/observances/earth-day"
+    },
+    {
+      "name": "Journée des jeunes filles dans le secteur des TIC",
+      "month": 4,
+      "source": "https://www.itu.int/women-and-girls/girls-in-ict/fr/",
+      "weekday": 3,
+      "occurrence": 4,
+      "rule_source": "https://www.itu.int/itu-d/sites/digital-inclusion-women-and-girls/home/girls-in-ict-day/"
+    },
+    {
+      "name": "Journée de la langue anglaise",
+      "month": 4,
+      "day": 23,
+      "source": "http://www.un.org/en/events/englishlanguageday/index.shtml"
+    },
+    {
+      "name": "Journée de la langue espagnole",
+      "month": 4,
+      "day": 23,
+      "source": "http://www.un.org/es/events/spanishlanguageday/"
+    },
+    {
+      "name": "Journée mondiale du livre et du droit d'auteur",
+      "month": 4,
+      "day": 23,
+      "source": "https://www.unesco.org/fr/days/world-book-and-copyright"
+    },
+    {
+      "name": "Semaine mondiale de la vaccination",
+      "month": 4,
+      "day": 24,
+      "source": "https://www.who.int/fr/campaigns/world-immunization-week",
+      "kind": "week"
+    },
+    {
+      "name": "Journée internationale du multilatéralisme et de la diplomatie au service de la paix",
+      "month": 4,
+      "day": 24,
+      "source": "https://www.un.org/fr/observances/Multilateralism-for-Peace-day"
+    },
+    {
+      "name": "Journée mondiale contre le paludisme",
+      "month": 4,
+      "day": 25,
+      "source": "https://www.who.int/fr/news-room/campaigns/world-malaria-day/world-malaria-day-2020"
+    },
+    {
+      "name": "Journée internationale des délégués",
+      "month": 4,
+      "day": 25,
+      "source": "https://www.un.org/fr/observances/delegates-day"
+    },
+    {
+      "name": "Journée internationale du souvenir de la catastrophe de Chornobyl",
+      "month": 4,
+      "day": 26,
+      "source": "https://www.un.org/fr/observances/chernobyl-remembrance-day"
+    },
+    {
+      "name": "Journée mondiale de la propriété intellectuelle",
+      "month": 4,
+      "day": 26,
+      "source": "http://www.wipo.int/ip-outreach/fr/ipday/"
+    },
+    {
+      "name": "Journée mondiale pour la sécurité et la santé au travail",
+      "month": 4,
+      "day": 28,
+      "source": "https://www.un.org/fr/observances/work-safety-day"
+    },
+    {
+      "name": "Journée internationale dédiée à la mémoire des victimes des tremblements de terre",
+      "month": 4,
+      "day": 29,
+      "source": "https://www.un.org/fr/observances/list-days-weeks"
+    },
+    {
+      "name": "Journée internationale du jazz",
+      "month": 4,
+      "day": 30,
+      "source": "https://www.un.org/fr/observances/jazz-day"
+    },
+    {
+      "name": "Journée du Vesak",
+      "source": "https://www.un.org/fr/observances/vesak-day",
+      "date": "2026-05-01"
+    },
+    {
+      "name": "Journée mondiale du thon",
+      "month": 5,
+      "day": 2,
+      "source": "https://www.un.org/fr/observances/tuna-day"
+    },
+    {
+      "name": "Journée mondiale de la liberté de la presse",
+      "month": 5,
+      "day": 3,
+      "source": "https://www.un.org/fr/observances/press-freedom-day"
+    },
+    {
+      "name": "Journée mondiale de la langue portugaise",
+      "month": 5,
+      "day": 5,
+      "source": "https://www.unesco.org/fr/days/portuguese-language"
+    },
+    {
+      "name": "Journées du souvenir et de la réconciliation en l'honneur des morts de la Seconde Guerre mondiale",
+      "month": 5,
+      "source": "https://www.un.org/fr/observances/second-world-war-remembrance-days",
+      "days": [
+        8,
+        9
+      ]
+    },
+    {
+      "name": "Journée mondiale des oiseaux migrateurs",
+      "month": 5,
+      "source": "http://www.worldmigratorybirdday.org/",
+      "weekday": 5,
+      "occurrence": 2,
+      "rule_source": "https://www.worldmigratorybirdday.org/sites/default/files/wmbd_2025_may_summary_report.pdf"
+    },
+    {
+      "name": "Journée internationale de la santé des végétaux",
+      "month": 5,
+      "day": 12,
+      "source": "https://www.fao.org/plant-health-day/fr"
+    },
+    {
+      "name": "Journée internationale des familles",
+      "month": 5,
+      "day": 15,
+      "source": "https://www.un.org/fr/observances/international-day-of-families"
+    },
+    {
+      "name": "Journée internationale de la lumière",
+      "month": 5,
+      "day": 16,
+      "source": "https://www.unesco.org/fr/days/light"
+    },
+    {
+      "name": "Journée internationale du vivre-ensemble en paix",
+      "month": 5,
+      "day": 16,
+      "source": "https://www.un.org/fr/observances/living-in-peace-day"
+    },
+    {
+      "name": "Journée mondiale des télécommunications et de la société de l'information",
+      "month": 5,
+      "day": 17,
+      "source": "https://www.un.org/fr/observances/telecommunication-day"
+    },
+    {
+      "name": "Journée mondiale du fair-play",
+      "month": 5,
+      "day": 19,
+      "source": "https://www.un.org/fr/observances/fair-play-day"
+    },
+    {
+      "name": "Journée mondiale des abeilles",
+      "month": 5,
+      "day": 20,
+      "source": "https://www.un.org/fr/observances/bee-day"
+    },
+    {
+      "name": "Journée internationale du thé",
+      "month": 5,
+      "day": 21,
+      "source": "https://www.un.org/fr/observances/tea-day"
+    },
+    {
+      "name": "Journée mondiale de la diversité culturelle pour le dialogue et le développement",
+      "month": 5,
+      "day": 21,
+      "source": "https://www.un.org/fr/observances/cultural-diversity-day"
+    },
+    {
+      "name": "Journée internationale de la diversité biologique",
+      "month": 5,
+      "day": 22,
+      "source": "https://www.un.org/fr/observances/biological-diversity-day"
+    },
+    {
+      "name": "Journée internationale pour l’élimination de la fistule obstétricale",
+      "month": 5,
+      "day": 23,
+      "source": "https://www.un.org/fr/observances/end-fistula-day"
+    },
+    {
+      "name": "Journée internationale du markhor",
+      "month": 5,
+      "day": 24,
+      "source": "https://www.un.org/fr/observances/markhor-day"
+    },
+    {
+      "name": "Journée mondiale du football",
+      "month": 5,
+      "day": 25,
+      "source": "https://www.un.org/fr/observances/football-day"
+    },
+    {
+      "name": "Semaine de la solidarité avec les peuples des territoires non autonomes",
+      "month": 5,
+      "day": 25,
+      "source": "https://www.un.org/fr/observances/non-self-governing-week",
+      "kind": "week"
+    },
+    {
+      "name": "Journée internationale des Casques bleus des Nations Unies",
+      "month": 5,
+      "day": 29,
+      "source": "https://www.un.org/fr/observances/peacekeepers-day"
+    },
+    {
+      "name": "Journée mondiale sans tabac",
+      "month": 5,
+      "day": 31,
+      "source": "https://www.who.int/fr/campaigns/world-no-tobacco-day"
+    },
+    {
+      "name": "Journée mondiale des parents",
+      "month": 6,
+      "day": 1,
+      "source": "https://www.un.org/fr/observances/parents-day"
+    },
+    {
+      "name": "Journée mondiale de la bicyclette",
+      "month": 6,
+      "day": 3,
+      "source": "https://www.un.org/fr/observances/bicycle-day"
+    },
+    {
+      "name": "Journée internationale des enfants victimes innocentes de l'agression",
+      "month": 6,
+      "day": 4,
+      "source": "https://www.un.org/fr/observances/child-victim-day"
+    },
+    {
+      "name": "Journée internationale de la lutte contre la pêche illicite, non déclarée et non réglementée",
+      "month": 6,
+      "day": 5,
+      "source": "https://www.un.org/fr/observances/end-illegal-fishing-day"
+    },
+    {
+      "name": "Journée mondiale de l'environnement",
+      "month": 6,
+      "day": 5,
+      "source": "https://www.un.org/fr/observances/environment-day"
+    },
+    {
+      "name": "Journée de la langue russe",
+      "month": 6,
+      "day": 6,
+      "source": "https://www.un.org/ru/observances/russian-language-day"
+    },
+    {
+      "name": "Journée internationale de la sécurité sanitaire des aliments",
+      "month": 6,
+      "day": 7,
+      "source": "https://www.un.org/fr/observances/food-safety-day"
+    },
+    {
+      "name": "Journée mondiale de l'océan",
+      "month": 6,
+      "day": 8,
+      "source": "https://www.un.org/fr/observances/oceans-day"
+    },
+    {
+      "name": "Journée internationale pour le dialogue entre les civilisations",
+      "month": 6,
+      "day": 10,
+      "source": "https://www.un.org/fr/observances/international-day-for-dialogue-among-civilizations"
+    },
+    {
+      "name": "Journée internationale du jeu",
+      "month": 6,
+      "day": 11,
+      "source": "https://www.un.org/fr/observances/international-day-of-play"
+    },
+    {
+      "name": "Journée mondiale contre le travail des enfants",
+      "month": 6,
+      "day": 12,
+      "source": "https://www.un.org/fr/observances/World-Day-Against-Child-Labour"
+    },
+    {
+      "name": "Journée internationale de sensibilisation à l'albinisme",
+      "month": 6,
+      "day": 13,
+      "source": "https://www.un.org/fr/observances/albinism-day"
+    },
+    {
+      "name": "Journée mondiale du donneur de sang",
+      "month": 6,
+      "day": 14,
+      "source": "https://www.who.int/fr/campaigns/world-blood-donor-day"
+    },
+    {
+      "name": "Journée mondiale de sensibilisation à la maltraitance des personnes âgées",
+      "month": 6,
+      "day": 15,
+      "source": "https://www.un.org/fr/observances/elder-abuse-awareness-day"
+    },
+    {
+      "name": "Journée internationale des envois de fonds familiaux",
+      "month": 6,
+      "day": 16,
+      "source": "https://www.un.org/fr/observances/remittances-day"
+    },
+    {
+      "name": "Journée mondiale de la lutte contre la désertification et la sécheresse",
+      "month": 6,
+      "day": 17,
+      "source": "https://www.un.org/fr/observances/desertification-day"
+    },
+    {
+      "name": "Journée internationale de la lutte contre les discours de haine",
+      "month": 6,
+      "day": 18,
+      "source": "https://www.un.org/fr/observances/countering-hate-speech"
+    },
+    {
+      "name": "Journée de la gastronomie durable",
+      "month": 6,
+      "day": 18,
+      "source": "https://www.un.org/fr/observances/sustainable-gastronomy-day"
+    },
+    {
+      "name": "Journée internationale pour l'élimination de la violence sexuelle en temps de conflit",
+      "month": 6,
+      "day": 19,
+      "source": "https://www.un.org/fr/observances/end-sexual-violence-in-conflict-day"
+    },
+    {
+      "name": "Journée mondiale des réfugiés",
+      "month": 6,
+      "day": 20,
+      "source": "https://www.un.org/fr/observances/refugee-day"
+    },
+    {
+      "name": "Journée internationale de la célébration du solstice",
+      "month": 6,
+      "day": 21,
+      "source": "https://www.un.org/fr/observances/solstice-day"
+    },
+    {
+      "name": "Journée internationale du Yoga",
+      "month": 6,
+      "day": 21,
+      "source": "https://www.un.org/fr/observances/yoga-day"
+    },
+    {
+      "name": "Journée des Nations Unies pour la fonction publique",
+      "month": 6,
+      "day": 23,
+      "source": "https://www.un.org/fr/observances/public-service-day"
+    },
+    {
+      "name": "Journée internationale des veuves",
+      "month": 6,
+      "day": 23,
+      "source": "https://www.un.org/fr/observances/widows-day"
+    },
+    {
+      "name": "Journée internationale des femmes dans la diplomatie",
+      "month": 6,
+      "day": 24,
+      "source": "https://www.un.org/fr/observances/women-in-diplomacy-day"
+    },
+    {
+      "name": "Journée des gens de mer",
+      "month": 6,
+      "day": 25,
+      "source": "https://www.imo.org/fr/About/Events/Pages/Day-of-the-Seafarer-2025.aspx"
+    },
+    {
+      "name": "Journée internationale contre l'abus et le trafic de drogues",
+      "month": 6,
+      "day": 26,
+      "source": "https://www.un.org/fr/observances/end-drug-abuse-day"
+    },
+    {
+      "name": "Journée internationale pour le soutien aux victimes de la torture",
+      "month": 6,
+      "day": 26,
+      "source": "https://www.un.org/fr/observances/torture-victims-day"
+    },
+    {
+      "name": "Journée internationale des personnes sourdaveugles",
+      "month": 6,
+      "day": 27,
+      "source": "https://www.un.org/fr/observances/deafblindness-day"
+    },
+    {
+      "name": "Journée des micro-, petites et moyennes entreprises",
+      "month": 6,
+      "day": 27,
+      "source": "https://www.un.org/fr/observances/micro-small-medium-businesses-day"
+    },
+    {
+      "name": "Journée internationale des tropiques",
+      "month": 6,
+      "day": 29,
+      "source": "https://www.un.org/fr/observances/tropics-day"
+    },
+    {
+      "name": "Journée internationale des astéroïdes",
+      "month": 6,
+      "day": 30,
+      "source": "https://www.un.org/fr/observances/asteroid-day"
+    },
+    {
+      "name": "Journée internationale du parlementarisme",
+      "month": 6,
+      "day": 30,
+      "source": "https://www.un.org/fr/observances/parliamentarism-day"
+    },
+    {
+      "name": "Journée internationale des coopératives",
+      "month": 7,
+      "source": "https://www.un.org/fr/observances/cooperatives-day",
+      "weekday": 5,
+      "occurrence": 1,
+      "rule_source": "https://www.un.org/development/desa/cooperatives/2022/05/23/international-day-of-cooperatives-2022-cooperatives-build-a-better-world/"
+    },
+    {
+      "name": "Journée mondiale du développement rural",
+      "month": 7,
+      "day": 6,
+      "source": "https://www.un.org/fr/observances/list-days-weeks"
+    },
+    {
+      "name": "Journée mondiale de la langue kiswahili",
+      "month": 7,
+      "day": 7,
+      "source": "https://www.unesco.org/fr/days/kiswahili-language-day"
+    },
+    {
+      "name": "Journée internationale de réflexion et de commémoration du génocide commis à Srebrenica en 1995",
+      "month": 7,
+      "day": 11,
+      "source": "https://www.un.org/fr/observances/srebrenica-genocide-commemoration-day"
+    },
+    {
+      "name": "Journée mondiale du cheval",
+      "month": 7,
+      "day": 11,
+      "source": "https://www.un.org/fr/observances/horse-day"
+    },
+    {
+      "name": "Journée mondiale de la population",
+      "month": 7,
+      "day": 11,
+      "source": "https://www.un.org/fr/observances/world-population-day"
+    },
+    {
+      "name": "Journée internationale de l’espoir",
+      "month": 7,
+      "day": 12,
+      "source": "https://www.un.org/fr/observances/list-days-weeks"
+    },
+    {
+      "name": "Journée internationale de la lutte contre les tempêtes de sable et de poussière",
+      "month": 7,
+      "day": 12,
+      "source": "https://www.un.org/fr/observances/day-of-combating-sand-and-dust-storms"
+    },
+    {
+      "name": "Journée mondiale des compétences des jeunes",
+      "month": 7,
+      "day": 15,
+      "source": "https://www.un.org/fr/observances/world-youth-skills-day"
+    },
+    {
+      "name": "Journée internationale Nelson Mandela",
+      "month": 7,
+      "day": 18,
+      "source": "http://www.un.org/fr/events/mandeladay/"
+    },
+    {
+      "name": "Journée internationale de la Lune",
+      "month": 7,
+      "day": 20,
+      "source": "https://www.un.org/fr/observances/moon-day"
+    },
+    {
+      "name": "Journée mondiale du jeu d'échecs",
+      "month": 7,
+      "day": 20,
+      "source": "https://www.un.org/fr/observances/world-chess-day"
+    },
+    {
+      "name": "Journée internationale des femmes et des filles d’ascendance africaine",
+      "month": 7,
+      "day": 25,
+      "source": "https://www.un.org/fr/observances/women-girls-african-descent"
+    },
+    {
+      "name": "Journée internationale pour le bien-être des juges",
+      "month": 7,
+      "day": 25,
+      "source": "https://www.un.org/fr/observances/judicial-well-being-day"
+    },
+    {
+      "name": "Journée mondiale de prévention de la noyade",
+      "month": 7,
+      "day": 25,
+      "source": "https://www.un.org/fr/observances/drowning-prevention-day"
+    },
+    {
+      "name": "Journée mondiale contre l'hépatite",
+      "month": 7,
+      "day": 28,
+      "source": "https://www.who.int/fr/campaigns/world-hepatitis-day"
+    },
+    {
+      "name": "Journée internationale de l'amitié",
+      "month": 7,
+      "day": 30,
+      "source": "https://www.un.org/fr/observances/friendship-day"
+    },
+    {
+      "name": "Journée mondiale de la lutte contre la traite d’êtres humains",
+      "month": 7,
+      "day": 30,
+      "source": "https://www.un.org/fr/observances/end-human-trafficking-day"
+    },
+    {
+      "name": "Semaine mondiale de l'allaitement maternel",
+      "month": 8,
+      "day": 1,
+      "source": "http://www.who.int/mediacentre/events/2016/world-breastfeeding-week/fr/",
+      "kind": "week"
+    },
+    {
+      "name": "Journée internationale de sensibilisation aux besoins et enjeux de développement propres aux pays en développement sans littoral",
+      "month": 8,
+      "day": 6,
+      "source": "https://www.un.org/fr/observances/landlocked-developing-countries-day"
+    },
+    {
+      "name": "Journée internationale des peuples autochtones",
+      "month": 8,
+      "day": 9,
+      "source": "https://www.un.org/fr/observances/indigenous-day"
+    },
+    {
+      "name": "Journée mondiale du steel pan",
+      "month": 8,
+      "day": 11,
+      "source": "https://www.un.org/fr/observances/steelpan-day"
+    },
+    {
+      "name": "Journée internationale de la jeunesse",
+      "month": 8,
+      "day": 12,
+      "source": "https://www.un.org/fr/observances/youth-day"
+    },
+    {
+      "name": "Journée mondiale de l'aide humanitaire",
+      "month": 8,
+      "day": 19,
+      "source": "https://www.un.org/fr/observances/humanitarian-day"
+    },
+    {
+      "name": "Journée internationale du souvenir, en hommage aux victimes du terrorisme",
+      "month": 8,
+      "day": 21,
+      "source": "https://www.un.org/fr/observances/terrorism-victims-day"
+    },
+    {
+      "name": "Journée internationale de commémoration des personnes victimes de violences en raison de leur religion ou de leurs convictions",
+      "month": 8,
+      "day": 22,
+      "source": "https://www.un.org/fr/observances/religious-based-violence-victims-day"
+    },
+    {
+      "name": "Journée internationale du souvenir de la traite négrière et de son abolition",
+      "month": 8,
+      "day": 23,
+      "source": "https://www.unesco.org/fr/days/slave-trade-remembrance"
+    },
+    {
+      "name": "Journée mondiale des lacs",
+      "month": 8,
+      "day": 27,
+      "source": "https://www.un.org/fr/observances/world-lake-day"
+    },
+    {
+      "name": "Journée internationale contre les essais nucléaires",
+      "month": 8,
+      "day": 29,
+      "source": "https://www.un.org/fr/observances/end-nuclear-tests-day"
+    },
+    {
+      "name": "Journée internationale des victimes de disparition forcée",
+      "month": 8,
+      "day": 30,
+      "source": "https://www.un.org/fr/observances/victims-enforced-disappearance"
+    },
+    {
+      "name": "Journée internationale des personnes d’ascendance africaine",
+      "month": 8,
+      "day": 31,
+      "source": "https://www.un.org/fr/observances/african-descent-day"
+    },
+    {
+      "name": "Journée internationale des femmes et des filles autochtones",
+      "month": 9,
+      "day": 5,
+      "source": "https://www.un.org/fr/observances/indigenous-women-day"
+    },
+    {
+      "name": "Journée internationale de la charité",
+      "month": 9,
+      "day": 5,
+      "source": "https://www.un.org/fr/observances/charity-day"
+    },
+    {
+      "name": "Journée internationale de la coopération policière",
+      "month": 9,
+      "day": 7,
+      "source": "https://www.un.org/fr/observances/police-cooperation-day"
+    },
+    {
+      "name": "Journée internationale de l’air pur pour des ciels bleus",
+      "month": 9,
+      "day": 7,
+      "source": "https://www.un.org/fr/observances/clean-air-day"
+    },
+    {
+      "name": "Journée internationale de l'alphabétisation",
+      "month": 9,
+      "day": 8,
+      "source": "https://www.unesco.org/fr/days/literacy"
+    },
+    {
+      "name": "Journée internationale pour la protection de l’éducation contre les attaques",
+      "month": 9,
+      "day": 9,
+      "source": "https://www.un.org/fr/observances/protect-education-day"
+    },
+    {
+      "name": "Journée des Nations Unies pour la coopération Sud-Sud",
+      "month": 9,
+      "day": 12,
+      "source": "https://www.un.org/fr/observances/south-south-cooperation-day"
+    },
+    {
+      "name": "Journée internationale de la démocratie",
+      "month": 9,
+      "day": 15,
+      "source": "https://www.un.org/fr/observances/democracy-day"
+    },
+    {
+      "name": "Journée internationale pour la science, la technologie et l’innovation dans le Sud",
+      "month": 9,
+      "day": 16,
+      "source": "https://www.un.org/fr/observances/list-days-weeks"
+    },
+    {
+      "name": "Journée internationale de la cardiologie interventionnelle",
+      "month": 9,
+      "day": 16,
+      "source": "https://www.un.org/fr/observances/care-and-support-day"
+    },
+    {
+      "name": "Journée internationale de la protection de la couche d'ozone",
+      "month": 9,
+      "day": 16,
+      "source": "https://www.un.org/fr/observances/ozone-day"
+    },
+    {
+      "name": "Journée mondiale de la sécurité des patients",
+      "month": 9,
+      "day": 17,
+      "source": "https://www.who.int/fr/news-room/events/detail/2022/09/17/default-calendar/world-patient-safety-day-2022"
+    },
+    {
+      "name": "Journée internationale de l’égalité de rémunération",
+      "month": 9,
+      "day": 18,
+      "source": "https://www.un.org/fr/observances/equal-pay-day"
+    },
+    {
+      "name": "Journée internationale de la paix",
+      "month": 9,
+      "day": 21,
+      "source": "https://www.un.org/fr/observances/international-day-peace"
+    },
+    {
+      "name": "Journée internationale des langues des signes",
+      "month": 9,
+      "day": 23,
+      "source": "https://www.un.org/fr/observances/sign-languages-day"
+    },
+    {
+      "name": "Journée mondiale de la mer",
+      "month": 9,
+      "source": "https://www.un.org/fr/observances/maritime-day",
+      "weekday": 3,
+      "occurrence": -1,
+      "rule_source": "https://www.un.org/en/site-index/"
+    },
+    {
+      "name": "Journée internationale pour l'élimination totale des armes nucléaires",
+      "month": 9,
+      "day": 26,
+      "source": "https://www.un.org/fr/observances/nuclear-weapons-elimination-day"
+    },
+    {
+      "name": "Journée mondiale du tourisme",
+      "month": 9,
+      "day": 27,
+      "source": "https://www.untourism.int/fr/journee-mondiale-du-tourisme-2026"
+    },
+    {
+      "name": "Journée internationale de l'accès universel à l'information",
+      "month": 9,
+      "day": 28,
+      "source": "https://www.un.org/fr/observances/information-access-day"
+    },
+    {
+      "name": "Journée internationale de sensibilisation aux pertes et gaspillages de nourriture",
+      "month": 9,
+      "day": 29,
+      "source": "https://www.un.org/fr/observances/end-food-waste-day"
+    },
+    {
+      "name": "Journée internationale de la traduction",
+      "month": 9,
+      "day": 30,
+      "source": "https://www.un.org/fr/observances/international-translation-day"
+    },
+    {
+      "name": "Journée internationale du café",
+      "month": 10,
+      "day": 1,
+      "source": "https://www.fao.org/coffee/fr"
+    },
+    {
+      "name": "Journée internationale pour les personnes âgées",
+      "month": 10,
+      "day": 1,
+      "source": "https://www.un.org/fr/observances/older-persons-day"
+    },
+    {
+      "name": "Journée internationale de la non-violence",
+      "month": 10,
+      "day": 2,
+      "source": "https://www.un.org/fr/observances/non-violence-day"
+    },
+    {
+      "name": "Journée internationale des soins et de l’assistance",
+      "month": 10,
+      "day": 29,
+      "source": "https://www.un.org/fr/observances/care-and-support-day"
+    },
+    {
+      "name": "Semaine mondiale de l'espace",
+      "month": 10,
+      "day": 4,
+      "source": "https://www.un.org/fr/observances/world-space-week",
+      "kind": "week"
+    },
+    {
+      "name": "Journée mondiale de l'habitat",
+      "month": 10,
+      "source": "https://www.un.org/fr/observances/habitat-day",
+      "weekday": 0,
+      "occurrence": 1,
+      "rule_source": "https://www.un.org/observances/habitat-day"
+    },
+    {
+      "name": "Journée mondiale des enseignants",
+      "month": 10,
+      "day": 5,
+      "source": "https://www.unesco.org/fr/days/teachers"
+    },
+    {
+      "name": "Journée mondiale du coton",
+      "month": 10,
+      "day": 7,
+      "source": "https://www.un.org/fr/observances/cotton-day"
+    },
+    {
+      "name": "Journée mondiale de la poste",
+      "month": 10,
+      "day": 9,
+      "source": "https://www.un.org/fr/observances/world-post-day"
+    },
+    {
+      "name": "Journée mondiale des oiseaux migrateurs",
+      "month": 10,
+      "source": "https://www.worldmigratorybirdday.org/",
+      "weekday": 5,
+      "occurrence": 2,
+      "rule_source": "https://www.worldmigratorybirdday.org/sites/default/files/wmbd_2025_may_summary_report.pdf"
+    },
+    {
+      "name": "Journée mondiale de la santé mentale",
+      "month": 10,
+      "day": 10,
+      "source": "https://www.who.int/campaigns/world-mental-health-day/2024"
+    },
+    {
+      "name": "Journée internationale de la fille",
+      "month": 10,
+      "day": 11,
+      "source": "https://www.un.org/fr/observances/girl-child-day"
+    },
+    {
+      "name": "Journée internationale pour la réduction des risques de catastrophes",
+      "month": 10,
+      "day": 13,
+      "source": "https://www.un.org/fr/observances/disaster-reduction-day/"
+    },
+    {
+      "name": "Journée internationale des femmes rurales",
+      "month": 10,
+      "day": 15,
+      "source": "https://www.un.org/fr/observances/rural-women-day"
+    },
+    {
+      "name": "Journée mondiale de l'alimentation",
+      "month": 10,
+      "day": 16,
+      "source": "http://www.fao.org/world-food-day/home/fr/?no_cache=1"
+    },
+    {
+      "name": "Journée internationale pour l'élimination de la pauvreté",
+      "month": 10,
+      "day": 17,
+      "source": "https://www.un.org/fr/observances/day-for-eradicating-poverty"
+    },
+    {
+      "name": "Journée mondiale de la statistique",
+      "month": 10,
+      "day": 20,
+      "source": "https://www.un.org/fr/observances/statistics-day",
+      "first_year": 2010,
+      "interval": 5,
+      "rule_source": "https://www.un.org/en/observances/statistics-day"
+    },
+    {
+      "name": "Journée internationale de la panthère des neiges",
+      "month": 10,
+      "day": 23,
+      "source": "https://www.un.org/fr/observances/list-days-weeks"
+    },
+    {
+      "name": "Semaine mondiale de l’éducation aux médias et à l’information",
+      "month": 10,
+      "day": 24,
+      "source": "https://www.unesco.org/fr/media-information-literacy-week",
+      "kind": "week"
+    },
+    {
+      "name": "Journée mondiale d'information sur le développement",
+      "month": 10,
+      "day": 24,
+      "source": "https://www.un.org/fr/observances/development-information-day"
+    },
+    {
+      "name": "Semaine du désarmement",
+      "month": 10,
+      "day": 24,
+      "source": "https://www.un.org/fr/observances/disarmament-week",
+      "kind": "week"
+    },
+    {
+      "name": "Journée des Nations Unies",
+      "month": 10,
+      "day": 24,
+      "source": "https://www.un.org/fr/observances/un-day"
+    },
+    {
+      "name": "Journée mondiale du patrimoine audiovisuel",
+      "month": 10,
+      "day": 27,
+      "source": "https://www.unesco.org/fr/days/audiovisual-heritage"
+    },
+    {
+      "name": "Journée mondiale des villes",
+      "month": 10,
+      "day": 31,
+      "source": "https://www.un.org/fr/observances/cities-day"
+    },
+    {
+      "name": "Journée internationale de la fin de l’impunité pour les crimes commis contre des journalistes",
+      "month": 11,
+      "day": 2,
+      "source": "https://www.unesco.org/fr/days/end-impunity"
+    },
+    {
+      "name": "Journée mondiale de sensibilisation aux tsunamis",
+      "month": 11,
+      "day": 5,
+      "source": "https://www.un.org/fr/observances/tsunami-awareness-day"
+    },
+    {
+      "name": "Journée internationale pour la prévention de l'exploitation de l'environnement en temps de guerre et de conflit armé",
+      "month": 11,
+      "day": 6,
+      "source": "https://www.un.org/fr/observances/environment-in-war-protection-day"
+    },
+    {
+      "name": "Journée mondiale de la science au service de la paix et du développement",
+      "month": 11,
+      "day": 10,
+      "source": "https://www.unesco.org/fr/days/science-peace-development"
+    },
+    {
+      "name": "Semaine mondiale d'information sur la résistance aux antimicrobiens",
+      "month": 11,
+      "day": 18,
+      "source": "https://www.who.int/fr/campaigns/world-antimicrobial-awareness-week",
+      "kind": "week"
+    },
+    {
+      "name": "Journée mondiale du diabète",
+      "month": 11,
+      "day": 14,
+      "source": "https://www.un.org/fr/observances/diabetes-day"
+    },
+    {
+      "name": "Journée internationale de la prévention de toutes les formes de criminalité transnationale organisée et de la lutte contre ce fléau",
+      "month": 11,
+      "day": 15,
+      "source": "https://www.un.org/fr/observances/fight-against-transnational-crime-day"
+    },
+    {
+      "name": "Journée mondiale du souvenir des victimes de la circulation routière",
+      "month": 11,
+      "source": "https://www.un.org/fr/observances/road-traffic-victims-day",
+      "weekday": 6,
+      "occurrence": 3,
+      "rule_source": "https://www.un.org/en/un-chronicle/road-deaths-and-injuries-shatter-lives-impetus-lower-speeds-and-serious-post-crash"
+    },
+    {
+      "name": "Journée internationale du régime méditerranéen",
+      "month": 11,
+      "day": 16,
+      "source": "https://www.un.org/fr/observances/list-days-weeks"
+    },
+    {
+      "name": "Journée mondiale de la tolérance",
+      "month": 11,
+      "day": 16,
+      "source": "https://www.unesco.org/fr/days/tolerance"
+    },
+    {
+      "name": "Journée mondiale pour la prévention et la guérison de l’exploitation, des atteintes et des violences sexuelles visant les enfants",
+      "month": 11,
+      "day": 18,
+      "source": "https://www.un.org/fr/observances/child-sexual-exploitation-prevention-and-healing-day"
+    },
+    {
+      "name": "Journée mondiale des toilettes",
+      "month": 11,
+      "day": 19,
+      "source": "https://www.un.org/fr/observances/toilet-day"
+    },
+    {
+      "name": "Journée mondiale de la philosophie",
+      "month": 11,
+      "source": "https://fr.unesco.org/commemorations/philosophyday",
+      "weekday": 3,
+      "occurrence": 3,
+      "rule_source": "https://www.unesco.org/en/days/philosophy"
+    },
+    {
+      "name": "Journée de l'industrialisation de l'Afrique",
+      "month": 11,
+      "day": 20,
+      "source": "https://www.un.org/fr/observances/africa-industrialization-day"
+    },
+    {
+      "name": "Journée mondiale de l'enfance",
+      "month": 11,
+      "day": 20,
+      "source": "https://www.un.org/fr/observances/world-childrens-day"
+    },
+    {
+      "name": "Journée mondiale de la télévision",
+      "month": 11,
+      "day": 21,
+      "source": "https://www.un.org/fr/observances/world-television-day"
+    },
+    {
+      "name": "Journée mondiale des jumeaux siamois",
+      "month": 11,
+      "day": 24,
+      "source": "https://www.un.org/fr/observances/list-days-weeks"
+    },
+    {
+      "name": "Journée internationale pour l'élimination de la violence à l'égard des femmes",
+      "month": 11,
+      "day": 25,
+      "source": "https://www.un.org/fr/observances/ending-violence-against-women-day"
+    },
+    {
+      "name": "Journée mondiale des transports durables",
+      "month": 11,
+      "day": 26,
+      "source": "https://www.un.org/fr/observances/sustainable-transport-day"
+    },
+    {
+      "name": "Journée internationale pour l’élimination du mariage des enfants, du mariage précoce et du mariage forcé",
+      "month": 11,
+      "day": 27,
+      "source": "https://www.un.org/fr/observances/list-days-weeks"
+    },
+    {
+      "name": "Journée internationale de solidarité avec le peuple palestinien",
+      "month": 11,
+      "day": 29,
+      "source": "https://www.un.org/fr/observances/International-day-of-solidarity-with-the-palestinian-people"
+    },
+    {
+      "name": "Journée du souvenir dédiée à toutes les victimes de la guerre chimique",
+      "month": 11,
+      "day": 30,
+      "source": "https://www.un.org/fr/observances/chemical-warfare-victims-day"
+    },
+    {
+      "name": "Journée mondiale de lutte contre le sida",
+      "month": 12,
+      "day": 1,
+      "source": "https://www.un.org/fr/observances/world-aids-day"
+    },
+    {
+      "name": "Journée internationale pour l'abolition de l'esclavage",
+      "month": 12,
+      "day": 2,
+      "source": "https://www.un.org/fr/observances/slavery-abolition-day"
+    },
+    {
+      "name": "Journée internationale des personnes handicapées",
+      "month": 12,
+      "day": 3,
+      "source": "https://www.un.org/fr/observances/day-of-persons-with-disabilities"
+    },
+    {
+      "name": "Journée internationale des banques",
+      "month": 12,
+      "day": 4,
+      "source": "https://www.un.org/fr/observances/international-day-of-banks"
+    },
+    {
+      "name": "Journée internationale des volontaires",
+      "month": 12,
+      "day": 5,
+      "source": "https://www.un.org/fr/observances/volunteer-day"
+    },
+    {
+      "name": "Journée mondiale des sols",
+      "month": 12,
+      "day": 5,
+      "source": "https://www.un.org/fr/observances/world-soil-day"
+    },
+    {
+      "name": "Journée de l'aviation civile internationale",
+      "month": 12,
+      "day": 7,
+      "source": "https://www.un.org/fr/observances/civil-aviation-day"
+    },
+    {
+      "name": "Journée internationale contre la corruption",
+      "month": 12,
+      "day": 9,
+      "source": "https://www.un.org/fr/observances/anti-corruption-day"
+    },
+    {
+      "name": "Journée internationale de commémoration des victimes du crime de génocide, d’affirmation de leur dignité et de prévention de ce crime",
+      "month": 12,
+      "day": 9,
+      "source": "https://www.un.org/fr/observances/genocide-prevention-day"
+    },
+    {
+      "name": "Journée des droits de l'homme",
+      "month": 12,
+      "day": 10,
+      "source": "https://www.un.org/fr/observances/human-rights-day"
+    },
+    {
+      "name": "Journée internationale de la montagne",
+      "month": 12,
+      "day": 11,
+      "source": "https://www.un.org/fr/observances/mountain-day"
+    },
+    {
+      "name": "Journée internationale de la couverture sanitaire universelle",
+      "month": 12,
+      "day": 12,
+      "source": "https://www.un.org/fr/observances/universal-health-coverage-day"
+    },
+    {
+      "name": "Journée internationale de la neutralité",
+      "month": 12,
+      "day": 12,
+      "source": "https://www.un.org/fr/observances/neutrality-day"
+    },
+    {
+      "name": "Journée internationale contre le colonialisme sous toutes ses formes et dans toutes ses manifestations",
+      "month": 12,
+      "day": 14,
+      "source": "https://www.un.org/fr/observances/list-days-weeks"
+    },
+    {
+      "name": "Journée mondiale de la famille des langues turciques",
+      "month": 12,
+      "day": 15,
+      "source": "https://www.un.org/fr/observances/list-days-weeks"
+    },
+    {
+      "name": "Journée internationale des migrants",
+      "month": 12,
+      "day": 18,
+      "source": "https://www.un.org/fr/observances/migrants-day"
+    },
+    {
+      "name": "Journée de la langue arabe",
+      "month": 12,
+      "day": 18,
+      "source": "http://www.un.org/ar/events/arabiclanguageday/index.shtml"
+    },
+    {
+      "name": "Journée internationale d’hommage aux femmes engagées dans la recherche de personnes disparues",
+      "month": 12,
+      "day": 19,
+      "source": "https://www.un.org/fr/observances/list-days-weeks"
+    },
+    {
+      "name": "Journée internationale de la solidarité humaine",
+      "month": 12,
+      "day": 20,
+      "source": "https://www.un.org/fr/observances/human-solidarity-day"
+    },
+    {
+      "name": "Journée mondiale du basket-ball",
+      "month": 12,
+      "day": 21,
+      "source": "https://www.un.org/fr/observances/world-basketball-day"
+    },
+    {
+      "name": "Journée mondiale de la méditation",
+      "month": 12,
+      "day": 21,
+      "source": "https://www.un.org/fr/observances/list-days-weeks"
+    },
+    {
+      "name": "Journée internationale de la lutte contre la cybercriminalité",
+      "month": 12,
+      "day": 24,
+      "source": "https://www.unodc.org/unodc/en/cybercrime/day.html"
+    },
+    {
+      "name": "Journée internationale de la préparation aux épidémies",
+      "month": 12,
+      "day": 27,
+      "source": "https://www.un.org/fr/observances/epidemic-preparedness-day"
+    }
+  ]
+}

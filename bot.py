@@ -12,7 +12,7 @@ from discord import app_commands
 from dotenv import load_dotenv
 
 from bonjour.config import Config, load_config
-from bonjour.content import marker, render
+from bonjour.content import date_line, marker, render
 from bonjour.greetings import is_greeting, make_reply
 from bonjour.inactivity import choose_prompt, is_due
 from bonjour.namedays import get_names
@@ -25,7 +25,8 @@ async def find_bulletin(channel, author_id: int, day: date, zone):
     midnight = datetime.combine(day, time.min, zone)
     async for message in channel.history(limit=None, after=midnight, oldest_first=False):
         if (message.author.id == author_id and message.created_at.astimezone(zone).date() == day
-                and any(line.startswith(f"-# {marker(day)}") for line in message.content.splitlines())):
+                and any(line == date_line(day) or line.startswith(f"-# {marker(day)}")
+                        for line in message.content.splitlines())):
             return message
     return None
 

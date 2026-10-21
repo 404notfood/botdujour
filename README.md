@@ -8,8 +8,10 @@ Bot Python pour Debian 13 : un bulletin en français dans **un serveur et un sal
 
 - Date française, soleil et durée du jour calculés localement avec Astral.
 - **Paris sert de référence pour le soleil.** Il n'existe pas un seul horaire valable pour toute la France métropolitaine. La ville et ses coordonnées sont modifiables.
-- Prénoms du jour via l'[API officielle Nominis](https://nominis.cef.fr/contenus/integrations.html), avec cache par date et lien de crédit dans le message. Ce calendrier peut différer du calendrier des fleuristes. Le bot utilise les prénoms principaux renvoyés, au maximum six. En cas de panne et sans cache, il affiche que les prénoms sont indisponibles.
-- Quelques journées annuelles et Octobre rose sont inclus dans `calendar.json`. **Ce calendrier de journées particulières n'est pas exhaustif** ; les sources y sont indiquées. Sans événement renseigné, la rubrique est omise. Les textes sont rédigés pour ce bot.
+- Fête du jour via l'[API officielle Nominis](https://nominis.cef.fr/contenus/integrations.html), avec cache par date. Le premier prénom principal renvoyé est affiché en gras ; l'emoji 💐 contient le lien de crédit vers Nominis. Ce calendrier peut différer du calendrier des fleuristes. En cas de panne et sans cache, le bot affiche que les prénoms sont indisponibles.
+- Journées du [calendrier officiel de l'ONU](https://www.un.org/fr/observances/list-days-weeks), conservées localement dans `un_calendar.json` : 239 entrées relevées le 21 octobre 2026, avec titres stylisés, emojis et noms des journées en gras. Les dates mobiles sont recalculées ; la Journée mondiale de la statistique revient tous les cinq ans. Plusieurs journées peuvent être présentées ensemble. Les textes d'accompagnement sont rédigés pour ce bot.
+- Textes personnalisés et journées complémentaires dans `calendar.json`, prioritaires sur le calendrier ONU. Le thème mensuel, comme Octobre rose, revient uniquement le lundi sans événement prioritaire. Les jours sans événement, un petit mot adapté à la saison varie chaque jour.
+- Rappel du changement d'heure la veille et le jour même, calculé avec `Europe/Paris`, et titre « ENFIN VENDREDI ! » le vendredi.
 - Une formule de bonne journée adaptée au jour de la semaine, parmi deux variantes par jour, choisie de façon stable pour une date donnée.
 - Réponse à un message commençant par « bonjour », avec le pseudo du membre sur le serveur et une phrase polie et humoristique. Une seule réponse par membre et par jour, tous salons confondus, selon la date de Paris ; le suivi persiste après redémarrage.
 - Relances du salon du bulletin après deux heures sans message humain, puis toutes les deux heures si le silence continue : humour léger ou noir, petit ASCII ou message binaire à décrypter. Envois entre 09:00 et 22:00, heure de Paris.
@@ -154,17 +156,27 @@ Modifier `config.json` avec `bot`, puis exécuter `systemctl restart botdujour` 
 
 Les fenêtres doivent rester dans la même journée entre 04:00 et 23:00 pour éviter les heures locales ambiguës des changements d'heure. Avec les valeurs par défaut, aucun rattrapage n'a lieu après 09:00. Si le bot redémarre avant 09:00 alors que l'heure choisie est passée, il tente l'envoi dans la fenêtre restante.
 
-`calendar.json` permet d'ajouter des événements avec `title`, `text` et `source` :
+`calendar.json` permet d'ajouter des événements avec `title`, `text` et `source` (URL ou liste d'URL, conservée dans le fichier). Le texte accepte le gras `**...**` et les sauts de ligne pour présenter plusieurs journées :
 
 - `dates` : clé `AAAA-MM-JJ`, pour un événement d'une année précise ou à date mobile ;
 - `annual` : clé `MM-JJ`, seulement pour les événements annuels à date fixe ;
-- `months` : numéro du mois sous forme de texte, pour un thème mensuel de repli.
+- `months` : numéro du mois sous forme de texte, pour un thème mensuel rappelé le lundi.
 
-La priorité est : date précise, événement annuel, thème mensuel. Une journée mondiale qui ne se tient que certaines années doit figurer dans `dates`, pas dans `annual`. Après modification, essayer `--preview --date AAAA-MM-JJ` ; le bot refuse les messages dépassant la limite Discord de 2 000 caractères.
+La priorité est : date précise personnalisée, événement annuel personnalisé, calendrier ONU, thème mensuel le lundi, puis petit mot de saison. Un texte personnalisé remplace la rubrique ONU entière de cette date ; il peut donc décrire plusieurs événements. Une journée complémentaire qui ne se tient que certaines années doit figurer dans `dates`, pas dans `annual`. Après modification, essayer `--preview --date AAAA-MM-JJ` ; le bot refuse les messages dépassant la limite Discord de 2 000 caractères. Les horaires du soleil restent calculés pour les coordonnées configurées, même si la ville n'est plus affichée dans le bulletin.
+
+Le bulletin ne télécharge pas le site de l'ONU chaque matin : il lit `un_calendar.json`. Les semaines internationales sont annoncées à leur ouverture uniquement. Les dates lunaires sans règle annuelle fiable, comme le Vesak, sont enregistrées pour la seule année confirmée ; elles doivent être actualisées pour les années suivantes.
+
+Pour actualiser la copie locale (aucun envoi Discord) :
+
+```bash
+python scripts/update_un_calendar.py
+```
+
+On peut aussi importer une page HTML enregistrée avec `--html chemin/vers/page.html`. Relire le diff, notamment les nouvelles dates mobiles ou périodiques, puis lancer les tests et redémarrer le bot. L'import applique les règles révisées des événements mobiles connus et corrige certaines annotations périmées de la liste à partir des pages des organismes responsables ; les liens correspondants sont conservés dans le fichier. Une page incomplète ou de structure inconnue est refusée avant d'écraser le calendrier.
 
 ## Redémarrages et doublons
 
-Conserver la base SQLite et lancer une seule instance. Un verrou système évite deux processus sur la même base. La date locale et l'état d'envoi sont persistés par serveur. Avant de publier, le bot recherche ses propres bulletins du jour dans l'historique du salon, indépendamment des réponses aux nouveaux « bonjour ». Ne pas retirer la dernière ligne `Bulletin du AAAA-MM-JJ` des messages du bot.
+Conserver la base SQLite et lancer une seule instance. Un verrou système évite deux processus sur la même base. La date locale et l'état d'envoi sont persistés par serveur. Avant de publier, le bot recherche ses propres bulletins du jour dans l'historique du salon grâce à leur ligne de date, indépendamment des réponses aux nouveaux « bonjour ». Les anciens messages avec une dernière ligne `Bulletin du AAAA-MM-JJ` restent reconnus. Le nouveau bulletin n'affiche plus ce pied technique.
 
 Si un arrêt survient après l'envoi et avant l'enregistrement local, l'historique permet normalement de retrouver le message. Si l'issue d'un envoi réseau reste incertaine et qu'aucun message n'est retrouvé, le jour est marqué `uncertain` et le bot s'abstient de renvoyer automatiquement. Dans ce cas rare, vérifier le salon et les journaux ; le bulletin peut manquer pour cette journée. Ne pas effacer la base pour forcer une nouvelle tentative. Les jours suivants continuent normalement.
 

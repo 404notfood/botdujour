@@ -12,7 +12,7 @@ import aiohttp
 import discord
 
 from bonjour.config import GreetingsConfig, load_config
-from bonjour.content import marker, occasion, render
+from bonjour.content import clock_notice, date_line, editorial, marker, occasion, render
 from bonjour.greetings import is_greeting, make_reply
 from bonjour.namedays import get_names, parse_names
 from bonjour.state import State, single_instance
@@ -66,13 +66,54 @@ class CoreTests(unittest.TestCase):
             day = date(2028, 1, 1) + timedelta(days=offset)
             text = render(self.config, day, ["René"])
             self.assertLessEqual(len(text.encode("utf-16-le")) // 2, 2000)
-            self.assertIn(marker(day), text)
+            self.assertIn(date_line(day), text)
+            self.assertIn("🌍", text)
         example = render(self.config, date(2026, 10, 19), ["René"])
         self.assertIn("lundi 19 octobre 2026", example)
-        self.assertIn("Paris", example)
-        self.assertIn("OCTOBRE ROSE", example)
+        self.assertNotIn("📍", example)
+        self.assertNotIn("-# Bulletin du", example)
+        self.assertIn("Octobre rose", example)
         self.assertIn("**René**", example)
         self.assertIsNone(occasion(date(2026, 2, 3)))
+
+    def test_calendar_changes_between_days_and_preserves_event_formatting(self):
+        monday = render(self.config, date(2026, 10, 19), ["René"])
+        tuesday = render(self.config, date(2026, 10, 20), ["Adeline"])
+        wednesday = render(self.config, date(2026, 10, 21), ["Céline", "Ursule"])
+        self.assertIn("Octobre rose", monday)
+        self.assertNotIn("Octobre rose", tuesday + wednesday)
+        self.assertIn("**Journée mondiale de l'ostéoporose**", tuesday)
+        self.assertIn("**Céline**", wednesday)
+        self.assertNotIn("Ursule", wednesday)
+        self.assertIn("https://nominis.cef.fr", wednesday)
+        self.assertNotIn(r"\*", wednesday)
+        # Une journée annuelle reste prioritaire même lorsqu'elle tombe un lundi.
+        self.assertIn("bégaiement", occasion(date(2029, 10, 22))["text"])
+
+    def test_editorial_bold_keeps_line_breaks_and_escapes_mentions(self):
+        text = editorial("🕊️ **Une journée**\n@everyone _exemple_ <@123456789012345678>")
+        self.assertIn("**Une journée**\n", text)
+        self.assertIn("@\u200beveryone", text)
+        self.assertIn("<@\u200b123456789012345678>", text)
+        self.assertIn(r"\_exemple\_", text)
+        self.assertEqual(editorial("**incomplet"), r"\*\*incomplet")
+
+    def test_clock_notices_follow_paris_transitions_each_year(self):
+        for transition, season, before, after in (
+            (date(2026, 3, 29), "d’été", "À 2h du matin, il sera 3h", "à 2h du matin, il était 3h"),
+            (date(2026, 10, 25), "d’hiver", "À 3h du matin, il sera 2h", "à 3h du matin, il était 2h"),
+            (date(2027, 3, 28), "d’été", "À 2h du matin, il sera 3h", "à 2h du matin, il était 3h"),
+            (date(2027, 10, 31), "d’hiver", "À 3h du matin, il sera 2h", "à 3h du matin, il était 2h"),
+        ):
+            with self.subTest(transition=transition):
+                eve = "\n".join(clock_notice(transition - timedelta(days=1), self.config.timezone))
+                today = "\n".join(clock_notice(transition, self.config.timezone))
+                self.assertIn(season, eve)
+                self.assertIn(before, eve)
+                self.assertIn(season, today)
+                self.assertIn(after, today)
+                self.assertEqual(clock_notice(transition - timedelta(days=2), self.config.timezone), [])
+                self.assertEqual(clock_notice(transition + timedelta(days=1), self.config.timezone), [])
 
     def test_no_invented_fete_on_missing_source(self):
         text = render(self.config, date(2026, 10, 19), None)
@@ -201,6 +242,27 @@ class SchedulerTests(unittest.IsolatedAsyncioTestCase):
         await self.client.tick(self.now)
         self.channel.send.assert_not_awaited()
         self.assertEqual(self.state.plan(self.config, self.day)["message_id"], "77")
+
+    async def test_recover_new_bulletin_without_technical_footer(self):
+        self.state.plan(self.config, self.day)
+        self.state.set_status(123, self.day, "sending")
+        self.channel.messages = [SimpleNamespace(id=78, author=SimpleNamespace(id=42),
+                                                content=render(self.config, self.day, ["René"]),
+                                                created_at=self.now)]
+        await self.client.tick(self.now)
+        self.channel.send.assert_not_awaited()
+        self.assertEqual(self.state.plan(self.config, self.day)["message_id"], "78")
+
+    async def test_bulletin_detection_ignores_greetings_other_authors_and_dates(self):
+        text = render(self.config, self.day, ["René"])
+        self.channel.messages = [
+            SimpleNamespace(author=SimpleNamespace(id=42), content="Bonjour **René** !", created_at=self.now),
+            SimpleNamespace(author=SimpleNamespace(id=99), content=text, created_at=self.now),
+            SimpleNamespace(author=SimpleNamespace(id=42), content=text, created_at=self.now - timedelta(days=1)),
+            SimpleNamespace(author=SimpleNamespace(id=42), created_at=self.now,
+                            content=render(self.config, self.day - timedelta(days=1), ["Luc"])),
+        ]
+        self.assertIsNone(await find_bulletin(self.channel, 42, self.day, self.config.timezone))
 
     async def test_uncertain_network_reply_never_blindly_retries(self):
         self.channel.send.side_effect = TimeoutError("réponse perdue")

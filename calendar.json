@@ -9,9 +9,14 @@
     "06-05": {"title": "JOURNÉE MONDIALE DE L'ENVIRONNEMENT", "text": "🌍 Aujourd'hui, prenons soin de notre environnement avec un petit geste à notre portée.", "source": "https://www.un.org/fr/observances/environment-day"},
     "06-08": {"title": "JOURNÉE MONDIALE DE L'OCÉAN", "text": "🌊 Célébrons les océans et la vie qu'ils abritent. Leur protection nous concerne tous !", "source": "https://www.un.org/fr/observances/oceans-day"},
     "09-21": {"title": "JOURNÉE INTERNATIONALE DE LA PAIX", "text": "🕊️ Un peu d'écoute et de bienveillance peuvent déjà rendre notre journée plus paisible.", "source": "https://www.un.org/fr/observances/international-day-peace"},
+    "10-20": {"title": "JOURNÉE MONDIALE", "text": "🦴 Aujourd'hui, c'est la **Journée mondiale de l'ostéoporose**. Une occasion de sensibiliser chacun à la santé des os et de soutenir les personnes concernées. 💙", "source": "https://www.worldosteoporosisday.org/"},
+    "10-22": {"title": "JOURNÉE DU JOUR", "text": "🗣️ Aujourd'hui, c'est la **Journée internationale de sensibilisation au bégaiement**. Prenons le temps d'écouter chacun avec patience et bienveillance. 💙", "source": "https://www.isastutter.org/what-we-do/isad"},
+    "10-23": {"title": "JOURNÉE INTERNATIONALE", "text": "🐆 Aujourd'hui, c'est la **Journée internationale de la panthère des neiges** ! Mettons à l'honneur cet animal et la protection de son habitat naturel. 🌍💚", "source": "https://www.un.org/fr/observances/snow-leopard-day"},
+    "10-24": {"title": "JOURNÉES MONDIALES", "text": "🇺🇳 Aujourd'hui, nous célébrons la **Journée des Nations Unies**, placée sous le signe de la coopération et de la paix. 🕊️\n📚 C'est aussi la **Journée mondiale d'information sur le développement**. Informons-nous et restons solidaires ! 🌍\n💜 En cette **Journée mondiale de lutte contre la polio**, une pensée pour toutes les personnes engagées contre cette maladie.", "source": ["https://www.un.org/fr/observances/list-days-weeks", "https://www.endpolio.org/world-polio-day"]},
+    "10-25": {"title": "JOURNÉE DU JOUR", "text": "🍝 Aujourd'hui, c'est la **Journée mondiale des pâtes** ! Spaghettis, coquillettes ou tagliatelles : quelle est votre recette préférée ? Bon appétit à tous les amateurs ! 🍴😋", "source": "https://internationalpasta.org/news/world-pasta-day-the-world-is-hungry-for-pasta-1-million-tons-more-pasta-is-consumed-in-a-year/"},
     "12-10": {"title": "JOURNÉE DES DROITS DE L'HOMME", "text": "🤝 La dignité et le respect de chacun se défendent aussi dans nos gestes du quotidien.", "source": "https://www.un.org/fr/observances/human-rights-day"}
   },
   "months": {
-    "10": {"title": "OCTOBRE ROSE", "text": "🎗️ En octobre, une pensée solidaire pour les personnes touchées par le cancer du sein et pour leurs proches. 💗", "source": "https://www.ligue-cancer.net/"}
+    "10": {"title": "JOURNÉE DU JOUR", "text": "🎗️ Octobre est le mois d'**Octobre rose**. Une pensée solidaire pour les personnes touchées par le cancer du sein et pour leurs proches. Prenons soin les uns des autres ! 💗", "source": "https://www.ligue-cancer.net/"}
   }
 }
