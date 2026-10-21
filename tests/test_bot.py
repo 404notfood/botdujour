@@ -12,7 +12,7 @@ import aiohttp
 import discord
 
 from bonjour.config import GreetingsConfig, load_config
-from bonjour.content import clock_notice, date_line, editorial, marker, occasion, render
+from bonjour.content import SEASONAL_TEXTS, clock_notice, date_line, editorial, marker, occasion, render, seasonal_text
 from bonjour.greetings import is_greeting, make_reply
 from bonjour.namedays import get_names, parse_names
 from bonjour.state import State, single_instance
@@ -89,6 +89,30 @@ class CoreTests(unittest.TestCase):
         self.assertNotIn(r"\*", wednesday)
         # Une journée annuelle reste prioritaire même lorsqu'elle tombe un lundi.
         self.assertIn("bégaiement", occasion(date(2029, 10, 22))["text"])
+
+    def test_missing_days_receive_distinct_stable_texts(self):
+        for year in (2026, 2027, 2028):
+            chosen = [[], [], [], []]
+            day = date(year, 1, 1)
+            while day.year == year:
+                if occasion(day) is None:
+                    text = seasonal_text(day)
+                    self.assertEqual(text, seasonal_text(day))
+                    season = (day.month % 12) // 3
+                    self.assertIn(text, SEASONAL_TEXTS[season])
+                    chosen[season].append(text)
+                day += timedelta(days=1)
+            for season, texts in enumerate(chosen):
+                with self.subTest(year=year, season=season):
+                    self.assertLessEqual(len(texts), len(SEASONAL_TEXTS[season]))
+                    self.assertEqual(len(texts), len(set(texts)))
+
+    def test_humorous_text_is_only_used_without_an_event(self):
+        missing = date(2026, 10, 21)
+        self.assertIn(editorial(seasonal_text(missing)), render(self.config, missing, ["Céline"]))
+        official = render(self.config, date(2026, 10, 27), ["Émeline"])
+        self.assertIn("Journée mondiale du patrimoine audiovisuel", official)
+        self.assertNotIn("𝐋𝐄 𝐏𝐄𝐓𝐈𝐓 𝐌𝐎𝐓 𝐃𝐔 𝐉𝐎𝐔𝐑", official)
 
     def test_editorial_bold_keeps_line_breaks_and_escapes_mentions(self):
         text = editorial("🕊️ **Une journée**\n@everyone _exemple_ <@123456789012345678>")
