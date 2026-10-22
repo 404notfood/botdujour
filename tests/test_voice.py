@@ -2,7 +2,7 @@ import unittest
 
 import discord
 
-from bonjour.voice import append_voice_invitation
+from bonjour.voice import append_voice_invitation, voice_arrival
 
 
 class VoiceInvitationTests(unittest.TestCase):
@@ -43,6 +43,50 @@ class VoiceInvitationTests(unittest.TestCase):
     def render(self, text="Une petite pause ?"):
         guild = discord.Guild(data=self.data, state=self.client._connection)
         return append_voice_invitation(text, guild)
+
+    def arrival(self):
+        guild = discord.Guild(data=self.data, state=self.client._connection)
+        return voice_arrival(guild.get_member(88), guild.get_channel(789))
+
+    def test_arrival_names_newcomer_and_other_humans(self):
+        message = self.arrival()
+        self.assertIn("**Alex** vient de rejoindre <#789>", message)
+        self.assertIn("Également en vocal : **Emma**.", message)
+        self.assertIn("Venez discuter avec eux", message)
+        self.assertNotIn("Musique", message)
+
+    def test_lone_arrival_invites_company(self):
+        self.data["voice_states"] = [self.voice(88, 789)]
+        self.assertIn("Venez lui tenir compagnie", self.arrival())
+        self.assertNotIn("Également", self.arrival())
+
+    def test_arrival_in_full_channel_announces_without_invitation(self):
+        self.data["channels"][0]["user_limit"] = 3
+        self.assertIn("**Alex** vient de rejoindre", self.arrival())
+        self.assertNotIn("Venez", self.arrival())
+
+    def test_arrival_respects_private_afk_and_stage_channels(self):
+        self.data["channels"][0]["permission_overwrites"] = [{
+            "id": "123", "type": 0, "allow": "0",
+            "deny": str(discord.Permissions(view_channel=True).value),
+        }]
+        self.assertIsNone(self.arrival())
+        self.data["channels"][0]["permission_overwrites"] = []
+        self.data["afk_channel_id"] = "789"
+        self.assertIsNone(self.arrival())
+        self.data["afk_channel_id"] = "790"
+        self.data["channels"][0]["type"] = 13
+        self.assertIsNone(self.arrival())
+
+    def test_arrival_escapes_newcomer_and_companion_nicknames(self):
+        self.data["members"][1]["nick"] = "@everyone **Chef**\n<#123>"
+        self.data["members"][2]["nick"] = "@here *Emma*"
+        message = self.arrival()
+        self.assertNotIn("@everyone", message)
+        self.assertNotIn("@here", message)
+        self.assertNotIn("<#123>", message)
+        self.assertIn(r"\*\*Chef\*\*", message)
+        self.assertIn(r"\*Emma\*", message)
 
     def test_public_voice_lists_cached_members_without_members_intent(self):
         self.assertFalse(self.client.intents.members)

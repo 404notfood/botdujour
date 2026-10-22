@@ -17,6 +17,7 @@ Bot Python pour Debian 13 : un bulletin en français dans **un serveur et un sal
 - Réponse à un message commençant par « bonjour », avec le pseudo du membre sur le serveur et une phrase polie et humoristique. Une seule réponse par membre et par jour, tous salons confondus, selon la date de Paris ; le suivi persiste après redémarrage.
 - Relances du salon du bulletin après deux heures sans message humain, puis toutes les deux heures si le silence continue : humour léger ou noir, petit ASCII ou message binaire à décrypter. Envois entre 09:00 et 22:00, heure de Paris.
 - Invitation à rejoindre les membres présents dans les vocaux publics, ajoutée aux relances lorsque des salons sont occupés et accessibles.
+- Annonce dans le salon du bulletin à chaque arrivée d'un membre en vocal public, même sans inactivité, avec le salon cliquable et les autres membres présents.
 - Aucun service d'IA ni clé d'API payante. Les salutations nécessitent la lecture des nouveaux messages ; leur contenu et les pseudos ne sont pas enregistrés dans la base.
 
 ## 1. Créer l'application Discord
@@ -137,7 +138,7 @@ Si des membres sont en vocal au moment de l'envoi, la relance se termine aussi p
 
 Le nom du salon est une mention cliquable dans Discord. Les pseudos sont ceux affichés sur le serveur, sans notification. Plusieurs salons peuvent être proposés. Les bots, les salons vides, le salon AFK, les salons complets et les salons à accès restreint sont ignorés. Le bot propose uniquement les vocaux visibles et accessibles à `@everyone`, qu'il peut lui-même voir, sans refus explicite de visibilité ou de connexion pour un rôle ou un membre. Ce filtrage est volontairement prudent. L'affichage est limité à cinq salons et cinq pseudos par salon, avec le nombre de membres supplémentaires, dans la limite des 2 000 caractères de Discord.
 
-Les présences sont consultées à chaque relance ; aucun message supplémentaire n'est envoyé à chaque arrivée ou départ. S'il n'y a aucun vocal à proposer, seule la relance habituelle est publiée. Les pseudos et les présences vocales ne sont pas enregistrés dans SQLite. Le bot demande automatiquement l'intent standard `voice_states` ; aucune activation supplémentaire dans **Privileged Gateway Intents**, aucune permission de connexion au vocal et aucun intent des membres ou des présences ne sont nécessaires. Il ne rejoint pas les appels.
+Les présences sont consultées à chaque relance. S'il n'y a aucun vocal à proposer, seule la relance habituelle est publiée. Les annonces d'arrivée décrites plus bas fonctionnent en parallèle. Les pseudos et les présences vocales ne sont pas enregistrés dans SQLite. Le bot demande automatiquement l'intent standard `voice_states` ; aucune activation supplémentaire dans **Privileged Gateway Intents**, aucune permission de connexion au vocal et aucun intent des membres ou des présences ne sont nécessaires. Il ne rejoint pas les appels.
 
 Pour modifier ces réglages, ajouter le bloc suivant à la configuration, en conservant les autres paramètres :
 
@@ -154,7 +155,7 @@ Pour modifier ces réglages, ajouter le bloc suivant à la configuration, en con
 
 `tone` accepte `light`, `dark` ou `mixed` pour la sélection des blagues. Les ASCII et les binaires restent disponibles avec les trois tons. `enabled: false` désactive les relances. La plage horaire reste dans une même journée, entre 04:00 et 23:00 ; le délai accepte de 1 à 10 080 minutes. Une configuration existante sans ce bloc utilise les valeurs ci-dessus.
 
-`include_voice: false` désactive uniquement l'invitation vocale et la réception des présences vocales. L'invitation est activée par défaut, y compris avec une ancienne configuration sans ce paramètre. Redémarrer le bot après modification.
+`include_voice: false` désactive uniquement l'invitation vocale dans les relances. L'invitation est activée par défaut, y compris avec une ancienne configuration sans ce paramètre. La réception des présences vocales reste active si les annonces d'arrivée sont activées. Redémarrer le bot après modification.
 
 Au tout premier lancement sur un salon, le délai commence à la mise en route du suivi pour éviter une publication immédiate. Ensuite, les dates d'activité, de dernière relance et le dernier texte choisi sont conservés dans SQLite. Au redémarrage ou à la reconnexion, le bot vérifie les messages arrivés depuis sa dernière observation avant de relancer. Il consulte uniquement leurs métadonnées, sans enregistrer leur contenu ou le pseudo des membres. Le suivi d'inactivité seul ne nécessite pas Message Content Intent ; les réponses aux « bonjour » le demandent toujours.
 
@@ -163,6 +164,26 @@ Le contrôle a lieu toutes les 30 secondes. En dehors de la plage horaire, les r
 Une réservation est enregistrée avant l'envoi pour éviter une relance immédiate en double après un arrêt ou une réponse réseau perdue. En cas de résultat réseau incertain, le bot attend un nouveau délai complet avant de réessayer. Si Discord refuse explicitement l'envoi, la réservation est annulée pour permettre une reprise après correction des permissions. Le serveur et le salon doivent rester accessibles avec **Voir le salon**, **Envoyer des messages** et **Voir les anciens messages**.
 
 Après déploiement des fichiers modifiés sur le VPS, redémarrer depuis le compte administrateur `debian` : `sudo systemctl restart botdujour`. Les réponses quotidiennes aux « bonjour » gardent leur propre limite d'une fois par membre et par jour.
+
+## Annonces d'arrivée en vocal
+
+À chaque arrivée d'un membre dans un vocal public du serveur configuré, le bot publie immédiatement un message dans le salon du bulletin (`channel_id`), par exemple :
+
+> 🎙️ **Alex** vient de rejoindre **🔊 Général** !
+> Également en vocal : **Emma**.
+> Venez discuter avec eux !
+
+Le salon est cliquable et les pseudos ne déclenchent aucune notification. Si le membre est seul, le bot propose de lui tenir compagnie. Le message affiche jusqu'à cinq autres membres humains, puis leur nombre supplémentaire. Une arrivée dans un salon complet est annoncée, sans invitation à le rejoindre.
+
+Ces annonces fonctionnent à toute heure, même pendant une discussion textuelle, avec les relances désactivées ou avec `inactivity.include_voice: false`. Chaque changement vers un autre vocal public est aussi annoncé. Les simples changements de micro, de casque ou de caméra et les départs ne provoquent aucun message. Les bots, les autres serveurs, les salons privés, les salons AFK et les salons de conférence sont ignorés. Le filtrage des accès est le même que pour les invitations des relances.
+
+Les annonces sont actives par défaut, y compris dans une ancienne configuration. Pour les désactiver indépendamment des invitations dans les relances, ajouter :
+
+```json
+"voice": {"announce_joins": false}
+```
+
+Le bot ne réannonce pas les membres déjà présents au démarrage et ne rattrape pas les arrivées manquées pendant un arrêt. Une erreur d'envoi est journalisée, sans nouvel essai automatique pour éviter une annonce en double. Après transfert des fichiers sur le VPS, redémarrer le service : `sudo systemctl restart botdujour`.
 
 ## Configuration ultérieure
 

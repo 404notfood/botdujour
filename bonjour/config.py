@@ -23,6 +23,11 @@ class InactivityConfig:
 
 
 @dataclass(frozen=True)
+class VoiceConfig:
+    announce_joins: bool = True
+
+
+@dataclass(frozen=True)
 class Config:
     guild_id: int
     channel_id: int
@@ -35,6 +40,7 @@ class Config:
     state_db: Path
     greetings: GreetingsConfig = GreetingsConfig()
     inactivity: InactivityConfig = InactivityConfig()
+    voice: VoiceConfig = VoiceConfig()
 
 
 def load_config(path: Path, *, preview: bool = False) -> Config:
@@ -94,6 +100,11 @@ def load_config(path: Path, *, preview: bool = False) -> Config:
         if not isinstance(include_voice, bool):
             raise ValueError("inactivity.include_voice doit être true ou false.")
         idle_config = InactivityConfig(idle.get("enabled", True), minutes, idle_start, idle_end, tone, include_voice)
-        return Config(*ids, zone, start, end, name.strip(), lat, lon, path.resolve().parent / db, greeting_config, idle_config)
+        voice = raw.get("voice", {})
+        if not isinstance(voice, dict) or not isinstance(voice.get("announce_joins", True), bool):
+            raise ValueError("voice.announce_joins doit être true ou false.")
+        voice_config = VoiceConfig(voice.get("announce_joins", True))
+        return Config(*ids, zone, start, end, name.strip(), lat, lon, path.resolve().parent / db,
+                      greeting_config, idle_config, voice_config)
     except (KeyError, TypeError, OSError, ValueError) as exc:
         raise ValueError(f"Configuration {path} invalide : {exc}") from exc

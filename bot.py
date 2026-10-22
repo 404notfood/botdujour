@@ -17,7 +17,7 @@ from bonjour.greetings import is_greeting, make_reply
 from bonjour.inactivity import choose_prompt, is_due
 from bonjour.namedays import get_names
 from bonjour.state import State, single_instance
-from bonjour.voice import append_voice_invitation
+from bonjour.voice import append_voice_invitation, voice_arrival
 
 log = logging.getLogger("botdujour")
 
@@ -38,7 +38,7 @@ class BulletinClient(discord.Client):
         intents.guilds = True
         intents.guild_messages = config.greetings.enabled or config.inactivity.enabled
         intents.message_content = config.greetings.enabled
-        intents.voice_states = config.inactivity.enabled and config.inactivity.include_voice
+        intents.voice_states = config.voice.announce_joins or (config.inactivity.enabled and config.inactivity.include_voice)
         super().__init__(intents=intents, allowed_mentions=discord.AllowedMentions.none())
         self.config, self.state, self.session = config, state, session
         self.tree = app_commands.CommandTree(self)
@@ -112,6 +112,24 @@ class BulletinClient(discord.Client):
             # Réponse réseau incertaine : ne pas risquer de resaluer ce membre aujourd'hui.
             log.exception("Réponse bonjour incertaine dans le salon %s ; aucun nouvel essai pour ce membre aujourd'hui.",
                           message.channel.id)
+
+    async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState,
+                                    after: discord.VoiceState):
+        config = self.config
+        if (not config.voice.announce_joins or member.bot or member.guild.id != config.guild_id
+                or after.channel is None or before.channel == after.channel):
+            return
+        message = voice_arrival(member, after.channel)
+        if message is None:
+            return
+        try:
+            channel = await self.destination(config.channel_id)
+            await channel.send(message, allowed_mentions=discord.AllowedMentions.none())
+        except (ValueError, discord.Forbidden, discord.NotFound):
+            log.warning("Annonce d'arrivée en vocal refusée : vérifier le salon textuel et ses permissions.")
+        except Exception:
+            # Ne pas réessayer une annonce dont l'envoi peut déjà avoir abouti.
+            log.exception("Échec de l'annonce d'arrivée en vocal ; aucun renvoi automatique.")
 
     async def close(self):
         if self.worker:
