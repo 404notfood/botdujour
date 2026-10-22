@@ -17,6 +17,7 @@ from bonjour.greetings import is_greeting, make_reply
 from bonjour.inactivity import choose_prompt, is_due
 from bonjour.namedays import get_names
 from bonjour.state import State, single_instance
+from bonjour.voice import append_voice_invitation
 
 log = logging.getLogger("botdujour")
 
@@ -37,6 +38,7 @@ class BulletinClient(discord.Client):
         intents.guilds = True
         intents.guild_messages = config.greetings.enabled or config.inactivity.enabled
         intents.message_content = config.greetings.enabled
+        intents.voice_states = config.inactivity.enabled and config.inactivity.include_voice
         super().__init__(intents=intents, allowed_mentions=discord.AllowedMentions.none())
         self.config, self.state, self.session = config, state, session
         self.tree = app_commands.CommandTree(self)
@@ -213,10 +215,13 @@ class BulletinClient(discord.Client):
         if not is_due(config, row, now):
             return
         text = choose_prompt(config.inactivity.tone, row["last_prompt_text"])
+        message = (append_voice_invitation(text, self.get_guild(config.guild_id))
+                   if config.inactivity.include_voice else text)
+        # Conserver uniquement la blague pour éviter sa répétition malgré les changements en vocal.
         if not self.state.claim_inactivity(config.guild_id, config.channel_id, row, now, text):
             return
         try:
-            sent = await channel.send(text, allowed_mentions=discord.AllowedMentions.none())
+            sent = await channel.send(message, allowed_mentions=discord.AllowedMentions.none())
         except (discord.Forbidden, discord.NotFound):
             self.state.release_inactivity(config.guild_id, config.channel_id, now, row)
             log.warning("Relance refusée dans le salon %s : vérifier les permissions.", config.channel_id)

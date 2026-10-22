@@ -19,6 +19,7 @@ class InactivityConfig:
     start: time = time(9)
     end: time = time(22)
     tone: str = "mixed"
+    include_voice: bool = True
 
 
 @dataclass(frozen=True)
@@ -89,7 +90,10 @@ def load_config(path: Path, *, preview: bool = False) -> Config:
         tone = idle.get("tone", "mixed")
         if tone not in ("light", "dark", "mixed"):
             raise ValueError("inactivity.tone doit être light, dark ou mixed.")
-        idle_config = InactivityConfig(idle.get("enabled", True), minutes, idle_start, idle_end, tone)
+        include_voice = idle.get("include_voice", True)
+        if not isinstance(include_voice, bool):
+            raise ValueError("inactivity.include_voice doit être true ou false.")
+        idle_config = InactivityConfig(idle.get("enabled", True), minutes, idle_start, idle_end, tone, include_voice)
         return Config(*ids, zone, start, end, name.strip(), lat, lon, path.resolve().parent / db, greeting_config, idle_config)
     except (KeyError, TypeError, OSError, ValueError) as exc:
         raise ValueError(f"Configuration {path} invalide : {exc}") from exc

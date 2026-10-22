@@ -16,6 +16,7 @@ Bot Python pour Debian 13 : un bulletin en français dans **un serveur et un sal
 - Une formule de bonne journée adaptée au jour de la semaine, parmi deux variantes par jour, choisie de façon stable pour une date donnée.
 - Réponse à un message commençant par « bonjour », avec le pseudo du membre sur le serveur et une phrase polie et humoristique. Une seule réponse par membre et par jour, tous salons confondus, selon la date de Paris ; le suivi persiste après redémarrage.
 - Relances du salon du bulletin après deux heures sans message humain, puis toutes les deux heures si le silence continue : humour léger ou noir, petit ASCII ou message binaire à décrypter. Envois entre 09:00 et 22:00, heure de Paris.
+- Invitation à rejoindre les membres présents dans les vocaux publics, ajoutée aux relances lorsque des salons sont occupés et accessibles.
 - Aucun service d'IA ni clé d'API payante. Les salutations nécessitent la lecture des nouveaux messages ; leur contenu et les pseudos ne sont pas enregistrés dans la base.
 
 ## 1. Créer l'application Discord
@@ -129,6 +130,15 @@ Le salon surveillé est celui du bulletin quotidien (`channel_id`). Par défaut,
 
 Les relances mélangent huit blagues légères, huit phrases d'humour noir, quatre petits ASCII et quatre messages binaires. L'humour noir est macabre et absurde, par exemple « C'est tellement calme ici que même les fantômes ont demandé du télétravail ». Les binaires portent la mention « À décrypter », avec un encodage ASCII de huit bits par caractère. Le même message ne sort pas deux fois de suite, même après un redémarrage. Les banques de textes se trouvent dans `bonjour/inactivity.py`.
 
+Si des membres sont en vocal au moment de l'envoi, la relance se termine aussi par une invitation, par exemple :
+
+> 🎙️ Vous pouvez aussi venir discuter en vocal !
+> • Rejoignez **Alex** et **Emma** dans **🔊 Général** !
+
+Le nom du salon est une mention cliquable dans Discord. Les pseudos sont ceux affichés sur le serveur, sans notification. Plusieurs salons peuvent être proposés. Les bots, les salons vides, le salon AFK, les salons complets et les salons à accès restreint sont ignorés. Le bot propose uniquement les vocaux visibles et accessibles à `@everyone`, qu'il peut lui-même voir, sans refus explicite de visibilité ou de connexion pour un rôle ou un membre. Ce filtrage est volontairement prudent. L'affichage est limité à cinq salons et cinq pseudos par salon, avec le nombre de membres supplémentaires, dans la limite des 2 000 caractères de Discord.
+
+Les présences sont consultées à chaque relance ; aucun message supplémentaire n'est envoyé à chaque arrivée ou départ. S'il n'y a aucun vocal à proposer, seule la relance habituelle est publiée. Les pseudos et les présences vocales ne sont pas enregistrés dans SQLite. Le bot demande automatiquement l'intent standard `voice_states` ; aucune activation supplémentaire dans **Privileged Gateway Intents**, aucune permission de connexion au vocal et aucun intent des membres ou des présences ne sont nécessaires. Il ne rejoint pas les appels.
+
 Pour modifier ces réglages, ajouter le bloc suivant à la configuration, en conservant les autres paramètres :
 
 ```json
@@ -137,11 +147,14 @@ Pour modifier ces réglages, ajouter le bloc suivant à la configuration, en con
   "after_minutes": 120,
   "start": "09:00",
   "end": "22:00",
-  "tone": "mixed"
+  "tone": "mixed",
+  "include_voice": true
 }
 ```
 
 `tone` accepte `light`, `dark` ou `mixed` pour la sélection des blagues. Les ASCII et les binaires restent disponibles avec les trois tons. `enabled: false` désactive les relances. La plage horaire reste dans une même journée, entre 04:00 et 23:00 ; le délai accepte de 1 à 10 080 minutes. Une configuration existante sans ce bloc utilise les valeurs ci-dessus.
+
+`include_voice: false` désactive uniquement l'invitation vocale et la réception des présences vocales. L'invitation est activée par défaut, y compris avec une ancienne configuration sans ce paramètre. Redémarrer le bot après modification.
 
 Au tout premier lancement sur un salon, le délai commence à la mise en route du suivi pour éviter une publication immédiate. Ensuite, les dates d'activité, de dernière relance et le dernier texte choisi sont conservés dans SQLite. Au redémarrage ou à la reconnexion, le bot vérifie les messages arrivés depuis sa dernière observation avant de relancer. Il consulte uniquement leurs métadonnées, sans enregistrer leur contenu ou le pseudo des membres. Le suivi d'inactivité seul ne nécessite pas Message Content Intent ; les réponses aux « bonjour » le demandent toujours.
 

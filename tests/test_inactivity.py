@@ -212,6 +212,40 @@ class InactivityTests(unittest.IsolatedAsyncioTestCase):
         await self.client.inactivity_tick(self.now)
         self.client.destination.assert_not_awaited()
 
+    async def test_voice_invitation_uses_current_guild_and_preserves_joke_rotation(self):
+        self.seed()
+        with patch.object(self.client, "get_guild", return_value=object()) as get_guild, \
+                patch("bot.append_voice_invitation", side_effect=lambda text, guild: text + "\nVocal : Alex") as invite:
+            await self.client.inactivity_tick(self.now)
+            first_joke = self.state.activity(123, 456, self.now)["last_prompt_text"]
+            self.assertEqual(self.channel.send.call_args.args[0], first_joke + "\nVocal : Alex")
+            get_guild.assert_called_once_with(123)
+            self.assertNotIn("Alex", first_joke)
+            self.now += timedelta(hours=2)
+            await self.client.inactivity_tick(self.now)
+            self.assertEqual(invite.call_count, 2)
+            self.assertNotEqual(first_joke, self.state.activity(123, 456, self.now)["last_prompt_text"])
+        mentions = self.channel.send.call_args.kwargs["allowed_mentions"]
+        self.assertFalse(mentions.everyone or mentions.users or mentions.roles)
+
+    async def test_voice_invitation_can_be_disabled(self):
+        self.seed()
+        self.client.config = replace(self.config, inactivity=InactivityConfig(include_voice=False))
+        with patch("bot.append_voice_invitation") as invite:
+            await self.client.inactivity_tick(self.now)
+            invite.assert_not_called()
+        self.assertIn(self.channel.send.call_args.args[0], LIGHT + DARK + ASCII + BINARY)
+
+    async def test_voice_intent_is_only_requested_for_enabled_invitations(self):
+        self.assertTrue(self.client.intents.voice_states)
+        for idle in (InactivityConfig(include_voice=False), InactivityConfig(enabled=False)):
+            client = BulletinClient(replace(self.config, inactivity=idle), self.state, self.session)
+            try:
+                self.assertFalse(client.intents.voice_states)
+                self.assertFalse(client.intents.members)
+            finally:
+                await client.close()
+
     async def test_tone_banks_and_mentions(self):
         self.assertIn(choose_prompt("light"), LIGHT + ASCII + BINARY)
         self.assertIn(choose_prompt("dark"), DARK + ASCII + BINARY)
@@ -278,11 +312,15 @@ class InactivityTests(unittest.IsolatedAsyncioTestCase):
         path.write_text(json.dumps(raw), encoding="utf-8")
         self.assertEqual(load_config(path, preview=True).inactivity, InactivityConfig())
         for bad in ({"after_minutes": 0}, {"after_minutes": True}, {"enabled": "yes"},
-                    {"tone": "autre"}, {"start": "22:00", "end": "09:00"}, {"start": "09:00+01:00"}):
+                    {"tone": "autre"}, {"start": "22:00", "end": "09:00"}, {"start": "09:00+01:00"},
+                    {"include_voice": "true"}, {"include_voice": 1}):
             raw["inactivity"] = bad
             path.write_text(json.dumps(raw), encoding="utf-8")
             with self.assertRaises(ValueError):
                 load_config(path, preview=True)
+        raw["inactivity"] = {"include_voice": False}
+        path.write_text(json.dumps(raw), encoding="utf-8")
+        self.assertFalse(load_config(path, preview=True).inactivity.include_voice)
 
 
 if __name__ == "__main__":
