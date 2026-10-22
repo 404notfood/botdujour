@@ -352,7 +352,7 @@ def render(config: Config, day: date, names: list[str] | None) -> str:
     lines.append(f"🎉 **・{heading('FÊTE DU JOUR')}**")
     if names:
         # Le lien sur la fleur crédite Nominis sans ajouter de pied technique au bulletin.
-        lines.append(f"[💐](<https://nominis.cef.fr>) Bonne fête aux **{safe(names[0])}** !")
+        lines.append(f"[💐]Bonne fête aux **{safe(names[0])}** !")
     else:
         lines.append("💐 Le calendrier des prénoms est indisponible aujourd'hui.")
     # Choix stable par date pour garder le même aperçu après un redémarrage.
