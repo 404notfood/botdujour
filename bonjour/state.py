@@ -50,6 +50,10 @@ class State:
                 guild TEXT NOT NULL, day TEXT NOT NULL, user TEXT NOT NULL,
                 PRIMARY KEY (guild, day, user)
             );
+            CREATE TABLE IF NOT EXISTS mention_replies (
+                guild TEXT NOT NULL, user TEXT NOT NULL, replied_at TEXT NOT NULL,
+                PRIMARY KEY (guild, user)
+            );
             CREATE TABLE IF NOT EXISTS channel_activity (
                 guild TEXT NOT NULL, channel TEXT NOT NULL,
                 last_message_at TEXT NOT NULL, last_human_at TEXT NOT NULL,
@@ -125,6 +129,22 @@ class State:
                             (str(guild), str(channel), timestamp, timestamp))
         return self.db.execute("SELECT * FROM channel_activity WHERE guild=? AND channel=?",
                                (str(guild), str(channel))).fetchone()
+
+    def claim_mention(self, guild: int, user: int, now: datetime, cooldown_seconds: int) -> bool:
+        """Réserver atomiquement une réponse, tous salons confondus, même après redémarrage."""
+        utc = now.astimezone(timezone.utc)
+        cutoff = (utc - timedelta(seconds=cooldown_seconds)).isoformat()
+        with self.db:
+            cursor = self.db.execute("""INSERT INTO mention_replies (guild,user,replied_at) VALUES (?,?,?)
+                ON CONFLICT(guild,user) DO UPDATE SET replied_at=excluded.replied_at
+                WHERE mention_replies.replied_at <= ?""",
+                (str(guild), str(user), utc.isoformat(), cutoff))
+        return cursor.rowcount == 1
+
+    def release_mention(self, guild: int, user: int, reserved_at: datetime):
+        with self.db:
+            self.db.execute("DELETE FROM mention_replies WHERE guild=? AND user=? AND replied_at=?",
+                            (str(guild), str(user), reserved_at.astimezone(timezone.utc).isoformat()))
 
     def observe_activity(self, guild: int, channel: int, message_id: int, at: datetime, *, human: bool):
         row = self.activity(guild, channel, at)

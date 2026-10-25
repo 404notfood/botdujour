@@ -11,9 +11,11 @@ from unittest.mock import AsyncMock, patch
 import aiohttp
 import discord
 
-from bonjour.config import GreetingsConfig, load_config
+from bonjour.config import GreetingsConfig, MentionsConfig, InactivityConfig, load_config
 from bonjour.content import SEASONAL_TEXTS, clock_notice, date_line, editorial, marker, occasion, render, seasonal_text
 from bonjour.greetings import is_greeting, make_reply
+from bonjour.dayparts import daypart
+from bonjour.mentions import is_direct_mention
 from bonjour.namedays import get_names, parse_names
 from bonjour.state import State, single_instance
 from bot import BulletinClient, find_bulletin
@@ -206,6 +208,53 @@ class CoreTests(unittest.TestCase):
             self.assertFalse(other.claim_greeting(123, day, 88))
             self.assertTrue(other.claim_greeting(123, day + timedelta(days=1), 88))
             self.assertTrue(other.claim_greeting(123, day, 89))
+        finally:
+            other.close()
+
+    def test_daypart_boundaries_in_paris_even_with_utc_input(self):
+        for hour, minute, expected in ((4, 59, "evening"), (5, 0, "morning"),
+                                       (11, 59, "morning"), (12, 0, "noon"),
+                                       (13, 59, "noon"), (14, 0, "afternoon"),
+                                       (17, 59, "afternoon"), (18, 0, "evening"),
+                                       (23, 59, "evening"), (0, 0, "evening")):
+            for month in (1, 7, 10):
+                local = datetime(2026, month, 25, hour, minute, tzinfo=self.config.timezone)
+                with self.subTest(local=local):
+                    self.assertEqual(daypart(local.astimezone(timezone.utc)), expected)
+
+    def test_direct_mentions_only_target_the_bot(self):
+        for content in ("<@42>", "Bonjour <@!42> !", "Coucou <@42> <@42>"):
+            self.assertTrue(is_direct_mention(content, 42))
+        for content in ("@everyone", "@here", "@Bot du jour", "<@142>", "<@&42>", "", "<@43>"):
+            self.assertFalse(is_direct_mention(content, 42))
+
+    def test_mention_config_defaults_and_validation(self):
+        raw = json.loads((ROOT / "config.example.json").read_text(encoding="utf-8"))
+        raw.pop("mentions")
+        path = Path(self.tmp.name) / "config.json"
+        path.write_text(json.dumps(raw), encoding="utf-8")
+        self.assertEqual(load_config(path, preview=True).mentions, MentionsConfig())
+        for invalid in (None, [], {"enabled": 1}, {"channel_ids": "456"},
+                        {"channel_ids": [True]}, {"channel_ids": ["oops"]},
+                        {"cooldown_seconds": True}, {"cooldown_seconds": 0},
+                        {"cooldown_seconds": 3601}, {"cooldown_seconds": 1.5}):
+            with self.subTest(invalid=invalid):
+                raw["mentions"] = invalid
+                path.write_text(json.dumps(raw), encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    load_config(path, preview=True)
+        raw["mentions"] = {"enabled": False, "channel_ids": ["456"], "cooldown_seconds": 60}
+        path.write_text(json.dumps(raw), encoding="utf-8")
+        self.assertEqual(load_config(path, preview=True).mentions, MentionsConfig(False, (456,), 60))
+
+    def test_mention_cooldown_survives_restart_and_clock_change(self):
+        now = datetime(2026, 10, 25, 0, 59, 50, tzinfo=timezone.utc)
+        self.assertTrue(self.state.claim_mention(123, 88, now, 30))
+        other = State(self.config.state_db)
+        try:
+            self.assertFalse(other.claim_mention(123, 88, (now + timedelta(seconds=29)).astimezone(self.config.timezone), 30))
+            self.assertTrue(other.claim_mention(123, 88, (now + timedelta(seconds=30)).astimezone(self.config.timezone), 30))
+            self.assertTrue(other.claim_mention(123, 89, now, 30))
         finally:
             other.close()
 
@@ -425,6 +474,106 @@ class SchedulerTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(client.intents.guild_messages)  # L'inactivité reçoit aussi les messages.
         finally:
             await client.close()
+
+    async def test_greetings_use_the_current_paris_daypart(self):
+        for hour, expected in ((8, "Bonjour"), (12, "Bon appétit"),
+                               (15, "après-midi"), (20, "Bonsoir")):
+            self.now = self.now.replace(hour=hour)
+            message = self.greeting_message(user_id=100 + hour)
+            with patch("bonjour.greetings.secrets.choice", side_effect=lambda choices: choices[0]):
+                await self.client.on_message(message)
+            self.assertIn(expected, message.reply.call_args.args[0])
+
+    async def test_ping_is_independent_from_daily_greeting_and_does_not_ping_back(self):
+        await self.client.on_message(self.greeting_message())
+        message = self.greeting_message(content="<@42> coucou !", display_name="@everyone **Chef**")
+        await self.client.on_message(message)
+        message.reply.assert_awaited_once()
+        self.assertIn("@\u200beveryone", message.reply.call_args.args[0])
+        self.assertIn(r"\*\*Chef\*\*", message.reply.call_args.args[0])
+        kwargs = message.reply.call_args.kwargs
+        self.assertFalse(kwargs["mention_author"])
+        self.assertFalse(kwargs["allowed_mentions"].users or kwargs["allowed_mentions"].roles
+                         or kwargs["allowed_mentions"].everyone)
+
+    async def test_ping_and_greeting_only_produce_one_reply_without_using_daily_greeting(self):
+        message = self.greeting_message(content="Bonjour <@42> <@!42> !")
+        await self.client.on_message(message)
+        message.reply.assert_awaited_once()
+        greeting = self.greeting_message()
+        await self.client.on_message(greeting)
+        greeting.reply.assert_awaited_once()
+
+    async def test_concurrent_pings_and_cross_channel_cooldown(self):
+        message = self.greeting_message(content="<@42>")
+        await asyncio.gather(self.client.on_message(message), self.client.on_message(message))
+        message.reply.assert_awaited_once()
+        again = self.greeting_message(content="<@!42>")
+        again.channel.id = 789
+        self.now += timedelta(seconds=29)
+        await self.client.on_message(again)
+        again.reply.assert_not_awaited()
+        self.now += timedelta(seconds=1)
+        await self.client.on_message(again)
+        again.reply.assert_awaited_once()
+        other = self.greeting_message(user_id=89, content="<@42>")
+        await self.client.on_message(other)
+        other.reply.assert_awaited_once()
+
+    async def test_pings_ignore_bots_webhooks_dms_other_guilds_and_implicit_mentions(self):
+        messages = [self.greeting_message(user_id=90 + i, content="<@42>") for i in range(6)]
+        messages[0].author.bot = True
+        messages[1].webhook_id = 12
+        messages[2].guild = None
+        messages[3].guild.id = 999
+        messages[4].content = "@everyone <@43>"
+        messages[5].content = "Une réponse sans ping explicite"
+        messages[5].mentions = [SimpleNamespace(id=42)]
+        for message in messages:
+            await self.client.on_message(message)
+            message.reply.assert_not_awaited()
+
+    async def test_ping_settings_are_independent_from_greetings(self):
+        self.client.config = replace(self.config, greetings=GreetingsConfig(False),
+                                     mentions=MentionsConfig(True, (789,)))
+        blocked = self.greeting_message(content="<@42>")
+        await self.client.on_message(blocked)
+        blocked.reply.assert_not_awaited()
+        allowed = self.greeting_message(content="<@42>")
+        allowed.channel.id = 789
+        await self.client.on_message(allowed)
+        allowed.reply.assert_awaited_once()
+        self.client.config = replace(self.client.config, mentions=MentionsConfig(False))
+        disabled = self.greeting_message(user_id=89, content="<@42>")
+        disabled.channel.id = 789
+        await self.client.on_message(disabled)
+        disabled.reply.assert_not_awaited()
+
+    async def test_mention_only_mode_receives_messages_without_privileged_intent(self):
+        config = replace(self.config, greetings=GreetingsConfig(False), inactivity=InactivityConfig(False))
+        client = BulletinClient(config, self.state, self.session)
+        try:
+            self.assertTrue(client.intents.guild_messages)
+            self.assertFalse(client.intents.message_content)
+        finally:
+            await client.close()
+
+    async def test_failed_ping_waits_for_cooldown(self):
+        message = self.greeting_message(content="<@42>")
+        message.reply.side_effect = TimeoutError("réponse perdue")
+        with self.assertLogs("botdujour", level="ERROR"):
+            await self.client.on_message(message)
+        await self.client.on_message(message)
+        message.reply.assert_awaited_once()
+
+    async def test_explicitly_refused_ping_can_retry(self):
+        message = self.greeting_message(content="<@42>")
+        message.reply.side_effect = discord.Forbidden(SimpleNamespace(status=403, reason="Forbidden"), "Missing permissions")
+        with self.assertLogs("botdujour", level="WARNING"):
+            await self.client.on_message(message)
+        message.reply.side_effect = None
+        await self.client.on_message(message)
+        self.assertEqual(message.reply.await_count, 2)
 
 
 if __name__ == "__main__":

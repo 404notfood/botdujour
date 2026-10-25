@@ -15,6 +15,7 @@ from bonjour.config import Config, load_config
 from bonjour.content import date_line, marker, render
 from bonjour.greetings import is_greeting, make_reply
 from bonjour.inactivity import choose_prompt, is_due
+from bonjour.mentions import is_direct_mention, make_mention_reply
 from bonjour.namedays import get_names
 from bonjour.state import State, single_instance
 from bonjour.voice import append_voice_invitation, voice_arrival
@@ -36,7 +37,7 @@ class BulletinClient(discord.Client):
     def __init__(self, config: Config, state: State, session: aiohttp.ClientSession):
         intents = discord.Intents.none()
         intents.guilds = True
-        intents.guild_messages = config.greetings.enabled or config.inactivity.enabled
+        intents.guild_messages = config.greetings.enabled or config.inactivity.enabled or config.mentions.enabled
         intents.message_content = config.greetings.enabled
         intents.voice_states = config.voice.announce_joins or (config.inactivity.enabled and config.inactivity.include_voice)
         super().__init__(intents=intents, allowed_mentions=discord.AllowedMentions.none())
@@ -89,20 +90,29 @@ class BulletinClient(discord.Client):
                 and message.guild.id == config.guild_id and message.channel.id == config.channel_id):
             self.state.observe_activity(config.guild_id, config.channel_id, message.id, message.created_at,
                                         human=not message.author.bot and message.webhook_id is None)
-        if (not config.greetings.enabled or message.guild is None
+        if (message.guild is None
                 or message.guild.id != config.guild_id or message.author.bot
                 or message.webhook_id is not None):
+            return
+        now = datetime.now(config.timezone)
+        if (config.mentions.enabled and self.user is not None
+                and is_direct_mention(message.content, self.user.id)
+                and (not config.mentions.channel_ids or message.channel.id in config.mentions.channel_ids)):
+            # Une seule réponse si un message contient à la fois « bonjour » et un ping.
+            await self.reply_to_mention(message, now)
+            return
+        if not config.greetings.enabled:
             return
         if config.greetings.channel_ids and message.channel.id not in config.greetings.channel_ids:
             return
         if not is_greeting(message.content):
             return
-        today = datetime.now(config.timezone).date()
+        today = now.date()
         # Réservation persistante avant le premier await pour éviter deux réponses simultanées.
         if not self.state.claim_greeting(config.guild_id, today, message.author.id):
             return
         try:
-            await message.reply(make_reply(message.author.display_name), mention_author=False,
+            await message.reply(make_reply(message.author.display_name, now), mention_author=False,
                                 allowed_mentions=discord.AllowedMentions.none())
         except (discord.Forbidden, discord.NotFound):
             self.state.release_greeting(config.guild_id, today, message.author.id)
@@ -111,6 +121,21 @@ class BulletinClient(discord.Client):
         except Exception:
             # Réponse réseau incertaine : ne pas risquer de resaluer ce membre aujourd'hui.
             log.exception("Réponse bonjour incertaine dans le salon %s ; aucun nouvel essai pour ce membre aujourd'hui.",
+                          message.channel.id)
+
+    async def reply_to_mention(self, message: discord.Message, now: datetime):
+        config = self.config
+        if not self.state.claim_mention(config.guild_id, message.author.id, now, config.mentions.cooldown_seconds):
+            return
+        try:
+            await message.reply(make_mention_reply(message.author.display_name), mention_author=False,
+                                allowed_mentions=discord.AllowedMentions.none())
+        except (discord.Forbidden, discord.NotFound):
+            self.state.release_mention(config.guild_id, message.author.id, now)
+            log.warning("Réponse au ping refusée dans le salon %s : vérifier les permissions ou le message source.",
+                        message.channel.id)
+        except Exception:
+            log.exception("Réponse au ping incertaine dans le salon %s ; délai conservé avant une nouvelle réponse.",
                           message.channel.id)
 
     async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState,
@@ -232,7 +257,7 @@ class BulletinClient(discord.Client):
         row = self.state.activity(config.guild_id, config.channel_id, now)
         if not is_due(config, row, now):
             return
-        text = choose_prompt(config.inactivity.tone, row["last_prompt_text"])
+        text = choose_prompt(config.inactivity.tone, row["last_prompt_text"], now)
         message = (append_voice_invitation(text, self.get_guild(config.guild_id))
                    if config.inactivity.include_voice else text)
         # Conserver uniquement la blague pour éviter sa répétition malgré les changements en vocal.

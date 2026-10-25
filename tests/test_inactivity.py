@@ -12,7 +12,7 @@ import aiohttp
 import discord
 
 from bonjour.config import GreetingsConfig, InactivityConfig, VoiceConfig, load_config
-from bonjour.inactivity import ASCII, BINARY, DARK, LIGHT, choose_prompt, is_due
+from bonjour.inactivity import ASCII, BINARY, DARK, LIGHT, TIME_PROMPTS, choose_prompt, is_due
 from bonjour.state import State
 from bot import BulletinClient
 
@@ -234,7 +234,8 @@ class InactivityTests(unittest.IsolatedAsyncioTestCase):
         with patch("bot.append_voice_invitation") as invite:
             await self.client.inactivity_tick(self.now)
             invite.assert_not_called()
-        self.assertIn(self.channel.send.call_args.args[0], LIGHT + DARK + ASCII + BINARY)
+        text = self.channel.send.call_args.args[0]
+        self.assertTrue(text in TIME_PROMPTS["noon"] or text.startswith("🍽️ Pause de midi\n"))
 
     async def test_voice_intent_is_only_requested_for_enabled_invitations(self):
         self.assertTrue(self.client.intents.voice_states)
@@ -313,7 +314,8 @@ class InactivityTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn(choose_prompt("mixed"), LIGHT + DARK + ASCII + BINARY)
         self.seed()
         await self.client.inactivity_tick(self.now)
-        self.assertIn(self.channel.send.call_args.args[0], LIGHT + DARK + ASCII + BINARY)
+        text = self.channel.send.call_args.args[0]
+        self.assertTrue(text in TIME_PROMPTS["noon"] or text.startswith("🍽️ Pause de midi\n"))
         self.assertFalse(self.channel.send.call_args.kwargs["allowed_mentions"].everyone)
 
     async def test_consecutive_prompts_differ_even_after_restart(self):
@@ -338,6 +340,23 @@ class InactivityTests(unittest.IsolatedAsyncioTestCase):
             self.assertLessEqual(len(message.encode("utf-16-le")) // 2, 2000)
         for previous in LIGHT + DARK + ASCII + BINARY:
             self.assertNotEqual(choose_prompt("mixed", previous), previous)
+
+    async def test_prompts_follow_local_time_preserve_tone_and_avoid_repetition(self):
+        for hour, part, prefix in ((9, "morning", "☀️ Pause du matin"),
+                                   (12, "noon", "🍽️ Pause de midi"),
+                                   (15, "afternoon", "🍪 Pause de l'après-midi"),
+                                   (20, "evening", "🌙 Pause du soir")):
+            local = self.now.replace(hour=hour)
+            for tone, bank in (("light", LIGHT), ("dark", DARK), ("mixed", LIGHT + DARK)):
+                for previous in (None, TIME_PROMPTS[part][0], f"{prefix}\n{bank[0]}"):
+                    with patch("bonjour.inactivity.secrets.choice", side_effect=lambda choices: choices[0]) as choose:
+                        choose_prompt(tone, previous, local.astimezone(timezone.utc))
+                    choices = choose.call_args.args[0]
+                    self.assertNotIn(previous, choices)
+                    for text in choices:
+                        self.assertTrue(text in TIME_PROMPTS[part] or
+                                        (text.startswith(prefix + "\n") and text.split("\n", 1)[1] in bank + ASCII + BINARY))
+                        self.assertLessEqual(len(text.encode("utf-16-le")) // 2, 2000)
 
     async def test_no_night_catchup_burst(self):
         self.now = self.now.replace(hour=21)

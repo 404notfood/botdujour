@@ -28,6 +28,13 @@ class VoiceConfig:
 
 
 @dataclass(frozen=True)
+class MentionsConfig:
+    enabled: bool = True
+    channel_ids: tuple[int, ...] = ()
+    cooldown_seconds: int = 30
+
+
+@dataclass(frozen=True)
 class Config:
     guild_id: int
     channel_id: int
@@ -41,6 +48,7 @@ class Config:
     greetings: GreetingsConfig = GreetingsConfig()
     inactivity: InactivityConfig = InactivityConfig()
     voice: VoiceConfig = VoiceConfig()
+    mentions: MentionsConfig = MentionsConfig()
 
 
 def load_config(path: Path, *, preview: bool = False) -> Config:
@@ -104,7 +112,21 @@ def load_config(path: Path, *, preview: bool = False) -> Config:
         if not isinstance(voice, dict) or not isinstance(voice.get("announce_joins", True), bool):
             raise ValueError("voice.announce_joins doit être true ou false.")
         voice_config = VoiceConfig(voice.get("announce_joins", True))
+        mentions = raw.get("mentions", {})
+        if not isinstance(mentions, dict) or not isinstance(mentions.get("enabled", True), bool):
+            raise ValueError("mentions.enabled doit être true ou false.")
+        mention_channels = mentions.get("channel_ids", [])
+        if not isinstance(mention_channels, list):
+            raise ValueError("mentions.channel_ids doit être une liste d'identifiants de salons.")
+        for channel_id in mention_channels:
+            value = str(channel_id)
+            if not value.isascii() or not value.isdigit() or not 0 < int(value) < 2**64:
+                raise ValueError("Identifiant de salon invalide dans mentions.channel_ids.")
+        cooldown = mentions.get("cooldown_seconds", 30)
+        if type(cooldown) is not int or not 1 <= cooldown <= 3600:
+            raise ValueError("mentions.cooldown_seconds doit être un entier entre 1 et 3600.")
+        mention_config = MentionsConfig(mentions.get("enabled", True), tuple(int(i) for i in mention_channels), cooldown)
         return Config(*ids, zone, start, end, name.strip(), lat, lon, path.resolve().parent / db,
-                      greeting_config, idle_config, voice_config)
+                      greeting_config, idle_config, voice_config, mention_config)
     except (KeyError, TypeError, OSError, ValueError) as exc:
         raise ValueError(f"Configuration {path} invalide : {exc}") from exc

@@ -6,6 +6,7 @@
   "location": {"name": "Paris", "latitude": 48.8566, "longitude": 2.3522},
   "state_db": "data/bot.sqlite3",
   "greetings": {"enabled": true, "channel_ids": []},
+  "mentions": {"enabled": true, "channel_ids": [], "cooldown_seconds": 30},
   "inactivity": {"enabled": true, "after_minutes": 120, "start": "09:00", "end": "22:00", "tone": "mixed", "include_voice": true},
   "voice": {"announce_joins": true}
 }

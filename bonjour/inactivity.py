@@ -3,6 +3,30 @@ from datetime import datetime, timedelta, timezone
 import secrets
 
 from .config import Config
+from .dayparts import daypart
+
+TIME_PROMPTS = {
+    "morning": (
+        "Petit contrôle du matin : tout le monde est réveillé, ou le café attend aussi son café ? ☕😴",
+        "Ce matin, une tartine surveille le salon. Elle réclame des nouvelles et une augmentation de confiture. 🍞📢",
+        "J'ai essayé de réveiller la conversation. Elle a appuyé sur snooze avec une biscotte. Bonjour les survivants du réveil ! ⏰😄",
+    ),
+    "noon": (
+        "Pause de midi ! Vous mangez quoi ? Moi, j'ai une soupe de pixels avec des croûtons de carte mère. 🍲🤖",
+        "Le salon est parti déjeuner ? J'ai réservé une table pour douze et un tabouret pour mon bug préféré. 🍽️🐛",
+        "À midi, même le silence mâche quelque chose. Qui a une recette qui ne termine pas par « appeler les pompiers » ? 🍳😄",
+    ),
+    "afternoon": (
+        "Cet après-midi, ma motivation fait la sieste dans un Tupperware. Quelqu'un a un biscuit pour la faire sortir ? 🍪😴",
+        "Pause dans l'après-midi : racontez votre petite victoire ! J'ai réussi à ne pas confondre la souris et un hamster. 🐹💻",
+        "Le goûter approche ou je rêve ? Mon horloge vient d'afficher 16 h chocolat. Vous faites quoi de beau ? 🍫🕓",
+    ),
+    "evening": (
+        "Ambiance du soir : le canapé recrute et mon plaid propose un CDI. Vous avez prévu quoi ? 🛋️🌙",
+        "La soirée est calme… J'ai envoyé un hibou chercher une conversation. Il est revenu avec une chips. 🦉😄",
+        "Le mode soirée est activé ! Qui lance une discussion avant que mon grille-pain raconte ses vacances ? 🌙🍞",
+    ),
+}
 
 LIGHT = (
     "C'est calme ici… Quelqu'un a activé le mode bibliothèque sans me prévenir ? 📚🤫",
@@ -43,9 +67,17 @@ BINARY = tuple(binary_message(text) for text in (
 ))
 
 
-def choose_prompt(tone: str, previous: str | None = None) -> str:
+def choose_prompt(tone: str, previous: str | None = None, now: datetime | None = None) -> str:
     jokes = {"light": LIGHT, "dark": DARK, "mixed": LIGHT + DARK}[tone]
-    choices = [text for text in jokes + ASCII + BINARY if text != previous]
+    # Avec une heure connue, toutes les relances portent le contexte du créneau.
+    if now is not None:
+        part = daypart(now)
+        context = {"morning": "☀️ Pause du matin", "noon": "🍽️ Pause de midi",
+                   "afternoon": "🍪 Pause de l'après-midi", "evening": "🌙 Pause du soir"}[part]
+        jokes = TIME_PROMPTS[part] + tuple(f"{context}\n{text}" for text in jokes + ASCII + BINARY)
+    else:
+        jokes = jokes + ASCII + BINARY
+    choices = [text for text in jokes if text != previous]
     return secrets.choice(choices)
 
 

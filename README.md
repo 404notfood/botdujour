@@ -106,7 +106,9 @@ La commande Discord **`/bonjour-apercu`** affiche le bulletin uniquement à son 
 
 Un membre qui écrit « Bonjour », « Bonsoir à tous ! », « Hey », « Hello », « Ola » ou « 👋 Salut » reçoit une réponse dans le même salon, par exemple :
 
-> Salut **Alex** ! Comment vas-tu ? Ça va coder aujourd'hui, ou le café réclame encore une mise à jour ? ☕😄
+> Bonjour **Alex** ! Bien dormi ? J'ai demandé au café de te réveiller doucement. Il a sorti un mégaphone. ☕📣
+
+La phrase est tirée au sort dans la banque du moment, **à l'heure de Paris** : matin de 05:00 à 11:59, midi de 12:00 à 13:59, après-midi de 14:00 à 17:59, soirée de 18:00 à 04:59. Par exemple, le bot souhaite bon appétit à midi et parle de détente le soir. Les changements d'heure sont pris en compte. Ces créneaux adaptent les réponses ; ils n'ajoutent pas de publications automatiques à heures fixes.
 
 Les salutations reconnues sont « bonjour », « bonsoir », « salut », « coucou », « hey », « hello », « hi », « yo », « ola », « olà », « olá », « hola » et « holà ». La détection accepte les majuscules, les espaces initiaux, le gras avec des astérisques et un emoji 👋 avant la salutation. Le mot doit être complet et placé en début de message.
 
@@ -129,11 +131,33 @@ Activer **Message Content Intent** dans le [portail développeur Discord](https:
 
 Une réservation est enregistrée avant l'envoi pour éviter les doubles réponses simultanées ou après une coupure. Si Discord refuse explicitement la réponse (message supprimé ou permissions manquantes), la réservation est libérée. Si la réponse réseau est incertaine, le bot s'abstient de resaluer cette personne ce jour-là pour éviter un doublon. Les autres membres et le lendemain ne sont pas bloqués.
 
+## Réponses aux pings du bot
+
+Une mention directe (`@Bot du jour`, sélectionnée dans Discord) déclenche une réplique aléatoire parmi 32 phrases absurdes, par exemple :
+
+> **Alex**, tu m'as invoqué pendant que j'apprenais le moonwalk à une courgette. Elle a déjà plus de rythme que mon processeur. 🥒🕺
+
+Les réponses aux pings fonctionnent à toute heure, indépendamment de la limite quotidienne des salutations et même si celles-ci sont désactivées. Le bot ignore les autres bots, les webhooks, les messages privés, les autres serveurs, les mentions de rôles, `@everyone` et les notifications implicites d'une réponse sans mention écrite. Si un message contient une salutation et un ping, seule la réplique au ping est envoyée. Le bot cite le pseudo sans notifier le membre.
+
+Par défaut, chaque personne peut obtenir **une réponse toutes les 30 secondes**, tous salons confondus. Ce délai persiste après redémarrage et utilise le temps écoulé réel, y compris pendant un changement d'heure. Les textes et pseudos reçus ne sont pas enregistrés. Une erreur réseau incertaine conserve le délai ; un refus explicite de Discord le libère.
+
+Les anciennes configurations activent aussi cette fonction. Pour la régler, ajouter ce bloc dans `config.json` :
+
+```json
+"mentions": {
+  "enabled": true,
+  "channel_ids": [],
+  "cooldown_seconds": 30
+}
+```
+
+Une liste vide autorise tous les salons accessibles du serveur configuré ; sinon, indiquer leurs identifiants, indépendamment de `greetings.channel_ids`. `enabled: false` désactive les réponses aux pings. Le délai accepte de 1 à 3 600 secondes. Redémarrer le service après modification. Les pings seuls ne demandent pas Message Content Intent ; cet intent reste nécessaire si les salutations sont activées. Les répliques sont personnalisables dans `bonjour/mentions.py`.
+
 ## Relances d'un salon inactif
 
 Le salon surveillé est celui du bulletin quotidien (`channel_id`). Par défaut, le bot attend **deux heures sans message humain**, puis publie un message aléatoire. Si personne ne parle, il en publie un nouveau **deux heures après le précédent**, entre **09:00 inclus et 22:00 exclu**, heure de Paris. Les nouveaux messages humains (y compris photos ou pièces jointes sans texte) remettent le délai de deux heures à zéro. Les autres salons, les modifications de messages, les réactions, les bots et les webhooks ne réinitialisent pas ce délai.
 
-Les relances mélangent huit blagues légères, huit phrases d'humour noir, quatre petits ASCII et quatre messages binaires. L'humour noir est macabre et absurde, par exemple « C'est tellement calme ici que même les fantômes ont demandé du télétravail ». Les binaires portent la mention « À décrypter », avec un encodage ASCII de huit bits par caractère. Le même message ne sort pas deux fois de suite, même après un redémarrage. Les banques de textes se trouvent dans `bonjour/inactivity.py`.
+Les relances mélangent des phrases adaptées au matin, à midi, à l'après-midi ou à la soirée, huit blagues légères, huit phrases d'humour noir, quatre petits ASCII et quatre messages binaires. Les créneaux sont les mêmes que pour les salutations, à l'heure de Paris. Les blagues, ASCII et binaires sont précédés du contexte (« Pause de midi », par exemple). L'humour noir est macabre et absurde, par exemple « C'est tellement calme ici que même les fantômes ont demandé du télétravail ». Les binaires portent la mention « À décrypter », avec un encodage ASCII de huit bits par caractère. Le même message ne sort pas deux fois de suite, même après un redémarrage. Les banques de textes se trouvent dans `bonjour/inactivity.py`.
 
 Si des membres sont en vocal au moment de l'envoi, la relance se termine aussi par une invitation, par exemple :
 
