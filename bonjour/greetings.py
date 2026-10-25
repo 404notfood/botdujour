@@ -6,7 +6,10 @@ import unicodedata
 from .content import safe
 
 
-GREETING = re.compile(r"^\s*(?:👋\ufe0f?\s*)?[*_]*bonjour\b", re.IGNORECASE)
+GREETING = re.compile(
+    r"^\s*(?:👋\ufe0f?\s*)?[*_]*(?:bonjour|bonsoir|salut|coucou|hey|hello|hi|yo|ol[aàá]|hol[aà])\b",
+    re.IGNORECASE,
+)
 REPLIES = (
     "Salut **{name}** ! Comment vas-tu ? Ça va coder aujourd'hui, ou le café réclame encore une mise à jour ? ☕😄",
     "Bonjour **{name}** ! Comment ça va ? Je te souhaite une journée avec beaucoup de sourires et très peu de bugs ! 😊",

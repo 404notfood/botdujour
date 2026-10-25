@@ -9,19 +9,20 @@ StartLimitBurst=5
 Type=simple
 User=bot
 Group=bot
-WorkingDirectory=/home/bot/app/botdujour
-EnvironmentFile=/home/bot/app/botdujour/.env
+WorkingDirectory=/home/bot/app
+EnvironmentFile=/home/bot/app/.env
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/home/bot/app/botdujour/.venv/bin/python /home/bot/app/botdujour/bot.py --config /home/bot/app/botdujour/config.json
+ExecStart=/home/bot/app/.venv/bin/python /home/bot/app/bot.py --config /home/bot/app/config.json
 Restart=on-failure
 RestartSec=15
 StateDirectory=botdujour
+StateDirectoryMode=0750
 UMask=0077
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=/var/lib/botdujour
+ReadWritePaths=/var/lib/botdujour /home/bot/app/data
 
 [Install]
 WantedBy=multi-user.target

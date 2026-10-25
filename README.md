@@ -14,7 +14,7 @@ Bot Python pour Debian 13 : un bulletin en français dans **un serveur et un sal
 - 208 petits mots dans `SEASONAL_TEXTS` : 64 pour l'hiver et 48 pour chaque autre saison. Ils sont mélangés par saison et par année, puis attribués uniquement aux dates sans événement, sans répétition avant épuisement de la banque. Le calendrier fourni permet une phrase différente pour chaque date manquante de l'année. Le choix reste stable après redémarrage ; modifier le calendrier peut redistribuer les phrases. Si un calendrier personnalisé épuise une banque, la rotation reprend au début.
 - Rappel du changement d'heure la veille et le jour même, calculé avec `Europe/Paris`, et titre « ENFIN VENDREDI ! » le vendredi.
 - Une formule de bonne journée adaptée au jour de la semaine, parmi deux variantes par jour, choisie de façon stable pour une date donnée.
-- Réponse à un message commençant par « bonjour », avec le pseudo du membre sur le serveur et une phrase polie et humoristique. Une seule réponse par membre et par jour, tous salons confondus, selon la date de Paris ; le suivi persiste après redémarrage.
+- Réponse à un message commençant par une salutation (« bonjour », « bonsoir », « salut », « coucou », « hey », « hello », « hi », « yo », « ola » ou « hola », avec leurs variantes accentuées), avec le pseudo du membre sur le serveur et une phrase polie et humoristique. Une seule réponse par membre et par jour, tous salons confondus, selon la date de Paris ; le suivi persiste après redémarrage.
 - Relances du salon du bulletin après deux heures sans message humain, puis toutes les deux heures si le silence continue : humour léger ou noir, petit ASCII ou message binaire à décrypter. Envois entre 09:00 et 22:00, heure de Paris.
 - Invitation à rejoindre les membres présents dans les vocaux publics, ajoutée aux relances lorsque des salons sont occupés et accessibles.
 - Annonce dans le salon du bulletin à chaque arrivée d'un membre en vocal public, même sans inactivité, avec le salon cliquable et les autres membres présents.
@@ -35,20 +35,20 @@ Pour l'invitation simple, laisser **Requires OAuth2 Code Grant** désactivé dan
 
 ## 2. Installation Debian 13
 
-Le projet est installé dans `/home/bot/app/botdujour` et le service fonctionne avec l'utilisateur existant `bot`, qui n'a pas besoin de sudo. Utiliser une session `root` (ou un autre compte administrateur avec sudo) uniquement pour les paquets système et le service. `su -` permet de passer de `bot` à `root` si le mot de passe root est disponible ; sinon ouvrir une connexion administrateur séparée. Ne pas transférer un environnement `.venv` Windows sur Debian : le créer sur le VPS.
+Le projet est installé directement dans `/home/bot/app` et le service fonctionne avec l'utilisateur existant `bot`, qui n'a pas besoin de sudo. Les commandes système s'exécutent depuis le compte administrateur `debian`, avec sudo. Le shell interactif de `bot` peut être isolé avec Bubblewrap (`vps-shell-bot`) : dans ce cas, ne pas y lancer systemctl. Le service système lance directement Python sous l'identité de bot, sans ouvrir ce shell. Ne pas transférer un environnement `.venv` Windows sur Debian : le créer sur le VPS.
 
-Avec **root**, préparer les dépendances système et le dossier de données :
+Avec **debian**, préparer les dépendances système et les dossiers de données :
 
 ```bash
-apt update
-apt install -y python3 python3-venv tzdata ca-certificates
-install -d -o bot -g bot -m 750 /var/lib/botdujour
+sudo apt update
+sudo apt install -y python3 python3-venv tzdata ca-certificates
+sudo install -d -o bot -g bot -m 750 /var/lib/botdujour /home/bot/app/data
 ```
 
-Avec **bot**, installer les bibliothèques Python et remplir la configuration. Depuis une session root, utiliser `su - bot` pour ouvrir cette session :
+Avec **bot**, installer les bibliothèques Python et remplir la configuration. Depuis debian, utiliser `sudo -iu bot` pour ouvrir cette session :
 
 ```bash
-cd /home/bot/app/botdujour
+cd /home/bot/app
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 cp -n config.example.json config.json
@@ -59,7 +59,7 @@ nano .env
 
 Les copies avec `cp -n` préservent une configuration déjà renseignée.
 
-Dans `config.json`, mettre les vrais identifiants **entre guillemets** et utiliser `/var/lib/botdujour/bot.sqlite3` pour `state_db` afin de respecter les droits du service Debian :
+Dans `config.json`, mettre les vrais identifiants **entre guillemets**. Pour une nouvelle installation, utiliser `/var/lib/botdujour/bot.sqlite3` pour `state_db`. Si une base existe déjà dans `data/bot.sqlite3`, conserver ce chemin pour préserver les envois mémorisés ; le service autorise également ce dossier :
 
 ```json
 {
@@ -84,29 +84,33 @@ chmod 600 .env config.json
 
 ## 3. Démarrage automatique
 
-Avec **root**, installer et démarrer le service. Si la session `bot` a été ouverte avec `su - bot`, utiliser `exit` pour revenir à root :
+Revenir à **debian** avec `exit`, puis installer et démarrer le service :
 
 ```bash
-cp /home/bot/app/botdujour/deploy/botdujour.service /etc/systemd/system/botdujour.service
-systemctl daemon-reload
-systemctl enable --now botdujour
-systemctl status botdujour
-journalctl -u botdujour -f
+sudo systemctl unmask botdujour
+sudo cp /home/bot/app/deploy/botdujour.service /etc/systemd/system/botdujour.service
+sudo systemctl daemon-reload
+sudo systemctl reset-failed botdujour
+sudo systemctl enable --now botdujour
+sudo systemctl status botdujour
+sudo journalctl -u botdujour -f
 ```
 
-Le service utilise `User=bot`, `WorkingDirectory=/home/bot/app/botdujour` et `ProtectHome=read-only` afin de pouvoir lire le projet situé dans `/home`. La base reste dans `/var/lib/botdujour`, seul emplacement persistant ouvert en écriture par le service. Ne pas réutiliser l'ancien service pointant vers `/opt/botdujour` ou avec `ProtectHome=true`.
+Le service utilise `User=bot`, `WorkingDirectory=/home/bot/app` et `ProtectHome=read-only` afin de pouvoir lire le projet situé dans `/home`. Seuls `/var/lib/botdujour` et `/home/bot/app/data` sont ouverts en écriture persistante pour les bases. Ne pas réutiliser l'ancien service pointant vers `/opt/botdujour` ou `/home/bot/app/botdujour`, ou avec `ProtectHome=true`.
 
 Le service démarre avec le VPS et redémarre après un échec. Les journaux signalent la connexion, les permissions, l'heure choisie en heure de Paris et les envois. Le préfixe des journaux suit éventuellement le fuseau du système ; l'heure annoncée pour le bulletin est toujours celle de Paris. Il suffit de connexions sortantes HTTPS et WebSocket vers Discord, et HTTPS vers Nominis ; aucun port entrant n'est nécessaire.
 
 La commande Discord **`/bonjour-apercu`** affiche le bulletin uniquement à son auteur. Elle exige la permission **Gérer le serveur**, vérifiée également à l'exécution. Aucun bouton ni commande ne provoque un envoi public de test.
 
-## Réponses aux bonjour
+## Réponses aux salutations
 
-Un membre qui écrit « Bonjour », « Bonjour à tous ! » ou « 👋 Bonjour » reçoit une réponse dans le même salon, par exemple :
+Un membre qui écrit « Bonjour », « Bonsoir à tous ! », « Hey », « Hello », « Ola » ou « 👋 Salut » reçoit une réponse dans le même salon, par exemple :
 
 > Salut **Alex** ! Comment vas-tu ? Ça va coder aujourd'hui, ou le café réclame encore une mise à jour ? ☕😄
 
-Le bot utilise le pseudo affiché sur le serveur (`display_name`), sans notification de mention. Il ignore les autres bots, les webhooks, les messages privés, les autres serveurs et un « bonjour » simplement cité au milieu d'un message. Il ne répond pas non plus aux modifications de messages.
+Les salutations reconnues sont « bonjour », « bonsoir », « salut », « coucou », « hey », « hello », « hi », « yo », « ola », « olà », « olá », « hola » et « holà ». La détection accepte les majuscules, les espaces initiaux, le gras avec des astérisques et un emoji 👋 avant la salutation. Le mot doit être complet et placé en début de message.
+
+Le bot utilise le pseudo affiché sur le serveur (`display_name`), sans notification de mention. Il ignore les autres bots, les webhooks, les messages privés, les autres serveurs et une salutation simplement citée au milieu d'un message. Il ne répond pas non plus aux modifications de messages.
 
 La limite est **une réponse par personne et par jour civil, à l'heure de Paris**, et s'applique même si la personne change de salon ou de pseudo. Deux personnes avec le même pseudo ont chacune leur réponse. L'identifiant Discord est utilisé pour ce suivi, qui reste enregistré dans la même base SQLite que les bulletins. Le lendemain commence à minuit à Paris, changements d'heure inclus.
 

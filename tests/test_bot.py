@@ -171,10 +171,17 @@ class CoreTests(unittest.TestCase):
                     pass
 
     def test_greeting_detection(self):
-        for text in ("bonjour", "Bonjour à tous !", "BONJOUR 😊", "  bonjour !", "👋 Bonjour", "**Bonjour**"):
-            self.assertTrue(is_greeting(text), text)
-        for text in ("", "bonne journée", "bonjournee", "Je lui ai dit bonjour", "`bonjour`", "> bonjour", "https://bonjour.fr"):
-            self.assertFalse(is_greeting(text), text)
+        for text in ("bonjour", "Bonjour à tous !", "BONJOUR 😊", "  bonjour !", "👋 Bonjour", "**Bonjour**",
+                     "Bonsoir tout le monde", "SALUT !", "Coucou", "Hey !", "hello", "Hi everyone", "yo",
+                     "ola", "Olá !", "Olà", "Hola amigos", "Holà !", "👋 **Bonsoir**", "  hEy les amis",
+                     "Ola\u0301 !"):
+            with self.subTest(text=text):
+                self.assertTrue(is_greeting(text), text)
+        for text in ("", "bonne journée", "bonjournee", "Je lui ai dit bonjour", "`bonjour`", "> bonjour",
+                     "https://bonjour.fr", "bonsoiree", "salutation", "heyday", "helloworld", "holala",
+                     "olaf", "high", "yoga", "On se dit bonsoir", "`hello`", "> salut"):
+            with self.subTest(text=text):
+                self.assertFalse(is_greeting(text), text)
 
     def test_greeting_config_is_optional_and_validated(self):
         raw = json.loads((ROOT / "config.example.json").read_text(encoding="utf-8"))
@@ -319,14 +326,21 @@ class SchedulerTests(unittest.IsolatedAsyncioTestCase):
                                webhook_id=None, content=content, reply=AsyncMock())
 
     async def test_greet_once_across_channels_and_nickname_changes(self):
-        first = self.greeting_message()
+        first = self.greeting_message(content="Bonsoir à tous !")
         await self.client.on_message(first)
-        again = self.greeting_message(display_name="Nouveau pseudo")
+        again = self.greeting_message(display_name="Nouveau pseudo", content="Hey !")
         again.channel.id = 789
         await self.client.on_message(again)
         first.reply.assert_awaited_once()
         self.assertIn("Pseudo du serveur", first.reply.call_args.args[0])
         again.reply.assert_not_awaited()
+
+    async def test_reply_to_alternative_greetings(self):
+        for user_id, content in enumerate(("Bonsoir !", "Hey !", "Ola !", "Hello !", "Salut !", "Coucou !"), start=90):
+            with self.subTest(content=content):
+                message = self.greeting_message(user_id=user_id, content=content)
+                await self.client.on_message(message)
+                message.reply.assert_awaited_once()
 
     async def test_distinct_members_with_same_nickname_are_greeted(self):
         first, second = self.greeting_message(88), self.greeting_message(89)
