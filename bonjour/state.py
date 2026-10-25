@@ -54,6 +54,10 @@ class State:
                 guild TEXT NOT NULL, user TEXT NOT NULL, replied_at TEXT NOT NULL,
                 PRIMARY KEY (guild, user)
             );
+            CREATE TABLE IF NOT EXISTS goodnights (
+                guild TEXT NOT NULL, day TEXT NOT NULL,
+                PRIMARY KEY (guild, day)
+            );
             CREATE TABLE IF NOT EXISTS channel_activity (
                 guild TEXT NOT NULL, channel TEXT NOT NULL,
                 last_message_at TEXT NOT NULL, last_human_at TEXT NOT NULL,
@@ -102,6 +106,21 @@ class State:
         import json
         row = self.db.execute("SELECT names FROM namedays WHERE day=?", (day.isoformat(),)).fetchone()
         return json.loads(row[0]) if row else None
+
+    def has_goodnight(self, guild: int, day: date) -> bool:
+        return self.db.execute("SELECT 1 FROM goodnights WHERE guild=? AND day=?",
+                               (str(guild), day.isoformat())).fetchone() is not None
+
+    def claim_goodnight(self, guild: int, day: date) -> bool:
+        with self.db:
+            cursor = self.db.execute("INSERT OR IGNORE INTO goodnights (guild,day) VALUES (?,?)",
+                                     (str(guild), day.isoformat()))
+        return cursor.rowcount == 1
+
+    def release_goodnight(self, guild: int, day: date):
+        """Libérer uniquement si Discord confirme le refus de l'envoi."""
+        with self.db:
+            self.db.execute("DELETE FROM goodnights WHERE guild=? AND day=?", (str(guild), day.isoformat()))
 
     def cache_names(self, day: date, names: list[str]):
         import json

@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from bonjour.config import Config, load_config
 from bonjour.content import date_line, marker, render
 from bonjour.greetings import is_greeting, make_reply
+from bonjour.goodnight import make_goodnight
 from bonjour.inactivity import choose_prompt, is_due
 from bonjour.mentions import is_direct_mention, make_mention_reply
 from bonjour.namedays import get_names
@@ -238,7 +239,37 @@ class BulletinClient(discord.Client):
                     await self.inactivity_tick(datetime.now(self.config.timezone))
                 except Exception:
                     log.exception("Échec de la vérification d'inactivité ; nouvel essai dans 30 secondes.")
+                try:
+                    await self.goodnight_tick(datetime.now(self.config.timezone))
+                except Exception:
+                    log.exception("Échec de la vérification du message de bonne nuit ; nouvel essai dans 30 secondes.")
             await asyncio.sleep(30)
+
+    async def goodnight_tick(self, now: datetime):
+        config = self.config
+        now = now.astimezone(config.timezone)
+        day = now.date()
+        if (not config.goodnight.enabled or now.time() < config.goodnight.at
+                or self.state.has_goodnight(config.guild_id, day)):
+            return
+        channel = await self.destination(config.channel_id)
+        # Ne pas publier le message de la veille si le réseau a passé minuit.
+        current = datetime.now(config.timezone)
+        if current.date() != day or current.time() < config.goodnight.at:
+            return
+        text = make_goodnight()
+        # Réserver avant l'envoi : pas de doublon après redémarrage ou appel simultané.
+        if not self.state.claim_goodnight(config.guild_id, day):
+            return
+        try:
+            await channel.send(text, allowed_mentions=discord.AllowedMentions.none())
+        except (discord.Forbidden, discord.NotFound):
+            self.state.release_goodnight(config.guild_id, day)
+            log.warning("Message de bonne nuit refusé : vérifier le salon et ses permissions.")
+        except Exception:
+            log.exception("Envoi de bonne nuit incertain ; aucun renvoi automatique pour le %s.", day)
+        else:
+            log.info("Message de bonne nuit publié pour le %s.", day)
 
     async def inactivity_tick(self, now: datetime):
         config = self.config

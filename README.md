@@ -193,6 +193,24 @@ Une réservation est enregistrée avant l'envoi pour éviter une relance immédi
 
 Après déploiement des fichiers modifiés sur le VPS, redémarrer depuis le compte administrateur `debian` : `sudo systemctl restart botdujour`. Les réponses quotidiennes aux « bonjour » gardent leur propre limite d'une fois par membre et par jour.
 
+## Message de bonne nuit à 23 h 30
+
+Chaque soir, vers **23:30, heure de Paris**, le bot publie une excuse absurde pour prendre congé dans le salon du bulletin (`channel_id`), parmi dix variantes :
+
+> Bon bah, c'est pas l'tout, mais j'ai aquaponey sur la Lune. Le poney a déjà mis son scaphandre. Bonne nuit les humains ! 🐴🌕
+
+Ce message fonctionne même si le salon est actif ou si les relances d'inactivité sont désactivées. Il ne déconnecte pas le bot : les réponses aux membres continuent. Les heures d'été et d'hiver sont gérées automatiquement. Le contrôle a lieu toutes les 30 secondes.
+
+La fonction est active par défaut, y compris avec une ancienne configuration. Pour modifier l'heure ou la désactiver, ajouter dans `config.json` :
+
+```json
+"goodnight": {"enabled": true, "time": "23:30"}
+```
+
+`enabled: false` désactive ce message. L'heure accepte de 04:00 à 23:59, sans secondes ni fuseau. Les textes se personnalisent dans `bonjour/goodnight.py`. Après déploiement, redémarrer le service : `sudo systemctl restart botdujour`.
+
+Une réservation SQLite limite l'envoi à une fois par jour, même après redémarrage. Si le bot se reconnecte entre l'heure prévue et minuit, il peut encore envoyer le message ; après minuit, aucun rattrapage de la veille n'a lieu. Un refus explicite de Discord autorise une nouvelle tentative. Une réponse réseau incertaine ou un arrêt après réservation conserve la réservation pour éviter un doublon ; le message peut alors manquer ce soir-là.
+
 ## Annonces d'arrivée en vocal
 
 À chaque arrivée d'un membre dans un vocal public du serveur configuré, le bot publie immédiatement un message dans le salon du bulletin (`channel_id`), par exemple :

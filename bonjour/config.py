@@ -35,6 +35,12 @@ class MentionsConfig:
 
 
 @dataclass(frozen=True)
+class GoodnightConfig:
+    enabled: bool = True
+    at: time = time(23, 30)
+
+
+@dataclass(frozen=True)
 class Config:
     guild_id: int
     channel_id: int
@@ -49,6 +55,7 @@ class Config:
     inactivity: InactivityConfig = InactivityConfig()
     voice: VoiceConfig = VoiceConfig()
     mentions: MentionsConfig = MentionsConfig()
+    goodnight: GoodnightConfig = GoodnightConfig()
 
 
 def load_config(path: Path, *, preview: bool = False) -> Config:
@@ -126,7 +133,15 @@ def load_config(path: Path, *, preview: bool = False) -> Config:
         if type(cooldown) is not int or not 1 <= cooldown <= 3600:
             raise ValueError("mentions.cooldown_seconds doit être un entier entre 1 et 3600.")
         mention_config = MentionsConfig(mentions.get("enabled", True), tuple(int(i) for i in mention_channels), cooldown)
+        goodnight = raw.get("goodnight", {})
+        if not isinstance(goodnight, dict) or not isinstance(goodnight.get("enabled", True), bool):
+            raise ValueError("goodnight.enabled doit être true ou false.")
+        goodnight_at = time.fromisoformat(goodnight.get("time", "23:30"))
+        if (goodnight_at.tzinfo or goodnight_at.second or goodnight_at.microsecond
+                or goodnight_at < time(4)):
+            raise ValueError("goodnight.time doit être au format HH:MM, entre 04:00 et 23:59.")
+        goodnight_config = GoodnightConfig(goodnight.get("enabled", True), goodnight_at)
         return Config(*ids, zone, start, end, name.strip(), lat, lon, path.resolve().parent / db,
-                      greeting_config, idle_config, voice_config, mention_config)
+                      greeting_config, idle_config, voice_config, mention_config, goodnight_config)
     except (KeyError, TypeError, OSError, ValueError) as exc:
         raise ValueError(f"Configuration {path} invalide : {exc}") from exc
